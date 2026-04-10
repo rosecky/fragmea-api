@@ -1,0 +1,189 @@
+= Endpoint Reference
+:toc:
+:toclevels: 3
+:sectanchors:
+
+== Health
+
+[cols="1,3,1"]
+|===
+|Method |Path |Auth
+
+|GET
+|`/health`
+|No
+|===
+
+== Corpus And Sessions
+
+[cols="1,3,1"]
+|===
+|Method |Path |Auth
+
+|GET
+|`/corpus/metadata`
+|Yes
+
+|POST
+|`/search`
+|Yes
+
+|GET
+|`/session/{session_id}`
+|Yes
+|===
+
+== Decision Endpoints
+
+[cols="1,3,1"]
+|===
+|Method |Path |Auth
+
+|GET
+|`/decision/{identifier}`
+|Yes
+
+|GET
+|`/decision/{identifier}/hits`
+|Yes
+
+|POST
+|`/decision/semantic-search`
+|Yes
+
+|POST
+|`/decision/fulltext-search`
+|Yes
+|===
+
+== Search And Workspace Building
+
+[cols="1,3,1"]
+|===
+|Method |Path |Auth
+
+|POST
+|`/decisions/search-within-dataframe`
+|Yes
+
+|POST
+|`/decisions/filter`
+|Yes
+
+|POST
+|`/arguments/expand`
+|Yes
+
+|POST
+|`/hits/expand-to-arguments`
+|Yes
+|===
+
+== Generic Dataframe Operations
+
+[cols="1,3,1"]
+|===
+|Method |Path |Auth
+
+|POST
+|`/dataframe/describe`
+|Yes
+
+|POST
+|`/dataframe/query`
+|Yes
+
+|POST
+|`/dataframe/filter`
+|Yes
+
+|POST
+|`/dataframe/aggregate`
+|Yes
+|===
+
+== Typed Decision Dataframe Operations
+
+[cols="1,3,1"]
+|===
+|Method |Path |Auth
+
+|POST
+|`/decisions/query`
+|Yes
+
+|POST
+|`/decisions/filter-dataframe`
+|Yes
+
+|POST
+|`/decisions/aggregate`
+|Yes
+|===
+
+== Typed Hit Dataframe Operations
+
+[cols="1,3,1"]
+|===
+|Method |Path |Auth
+
+|POST
+|`/hits/query`
+|Yes
+
+|POST
+|`/hits/filter`
+|Yes
+
+|POST
+|`/hits/aggregate`
+|Yes
+|===
+
+== Typed Argument Dataframe Operations
+
+[cols="1,3,1"]
+|===
+|Method |Path |Auth
+
+|POST
+|`/arguments/query`
+|Yes
+
+|POST
+|`/arguments/filter`
+|Yes
+
+|POST
+|`/arguments/aggregate`
+|Yes
+|===
+
+== Dataframe References
+
+The API uses immutable dataframe references that typically look like:
+
+----
+nsoud-search-session:<session_id>:decisions
+nsoud-search-session:<session_id>:hits
+nsoud-search-session:<session_id>:arguments
+----
+
+Expected kinds by endpoint family:
+
+- `decisions/*` typed dataframe endpoints expect a `:decisions` ref
+- `hits/*` typed dataframe endpoints expect a `:hits` ref
+- `arguments/*` typed dataframe endpoints expect an `:arguments` ref
+- generic `/dataframe/*` endpoints accept any dataframe ref
+
+== Filtering And Aggregation Conventions
+
+Generic operations use the common shapes:
+
+- filter item: `{ "field": "...", "op": "eq|ne|in|contains|gte|lte|gt|lt", "value": ... }`
+- sort item: `{ "field": "...", "direction": "asc|desc" }`
+- group-by item: `{ "field": "...", "label": "...", "date_part": "year|month|day" }`
+- metric item: `{ "op": "count|sum|avg|min|max|percentage|percent|share|list|list_distinct", "field": "...", "alias": "..." }`
+
+Typed decision, hit, and argument endpoints restrict field names and enum values more tightly. Use the OpenAPI spec in `openapi/nsoud-search-stack-api.openapi.yaml` for field-level details.
+

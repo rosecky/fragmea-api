@@ -1,0 +1,44 @@
+= Authentication
+
+:toc:
+:sectanchors:
+:source-highlighter: rouge
+
+== Public Contract
+
+- `GET /health` is public
+- every other endpoint requires a bearer token
+
+== Header Format
+
+[source,http]
+----
+Authorization: Bearer nsk_...
+----
+
+== Example
+
+[source,bash]
+----
+curl https://api.fragmea.com/search \
+  -H "Authorization: Bearer $FRAGMEA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query":"bezdůvodné obohacení"}'
+----
+
+== Error Behavior
+
+Missing or invalid credentials return `401 Unauthorized`.
+
+Typical reasons:
+
+- missing bearer header
+- unknown or revoked API key
+- inactive account behind the API key
+
+== Key Management
+
+Public consumers should use user-scoped API keys issued by the Fragmea application.
+
+This documentation does not cover internal deployment tokens used for service-to-service communication inside the private infrastructure. Those internal tokens are intentionally outside the public API contract.
+

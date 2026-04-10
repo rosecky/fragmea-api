@@ -1,0 +1,43 @@
+= FRAGMEA API Docs
+
+:toc:
+:toclevels: 2
+:sectanchors:
+:source-highlighter: rouge
+
+Public documentation repository for the FRAGMEA Stack HTTP API exposed at `https://api.fragmea.com`.
+
+This repository is intentionally small and publication-friendly:
+
+- human-readable API documentation in AsciiDoc
+- a curated OpenAPI 3.1 spec for client generation and integrations
+- quick examples for common legal search and dataframe workflows
+
+== Repository Layout
+
+- `docs/getting-started.adoc` - first request, auth, and common curl examples
+- `docs/authentication.adoc` - bearer token usage and auth behavior
+- `docs/endpoints.adoc` - grouped endpoint reference
+- `openapi/fragmea-api.openapi.yaml` - curated OpenAPI specification
+
+== API Summary
+
+- Base URL: `https://api.fragmea.com`
+- Auth: `Authorization: Bearer <api_key>` for all endpoints except `/health`
+- Content type: `application/json`
+- Main capabilities:
+* hybrid legal search over the indexed corpus
+* decision-level semantic and fulltext search
+* persistent search sessions and dataframe references
+* typed dataframe query, filter, aggregate, and expansion workflows
+
+== Notes
+
+- The OpenAPI file in this repository is curated from the live FastAPI routes and request models.
+- Response bodies are intentionally modeled as generic JSON objects in several places because the API returns rich dynamic payloads that depend on query mode and dataframe shape.
+- Public consumers should use user-scoped API keys. Internal deployment tokens are not part of the public contract.
+
+== Publishing
+
+This directory is designed to work as a standalone public repository without any dependency on the private deployment repo.
+

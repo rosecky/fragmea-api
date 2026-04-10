@@ -1,0 +1,135 @@
+= Getting Started
+:toc:
+:sectanchors:
+:source-highlighter: rouge
+
+== Base URL
+
+----
+https://api.fragmea.com
+----
+
+== Authentication
+
+All endpoints except `GET /health` require a bearer token:
+
+[source,bash]
+----
+export FRAGMEA_API_KEY='...'
+----
+
+== Health Check
+
+[source,bash]
+----
+curl https://api.fragmea.com/health
+----
+
+Expected response:
+
+[source,json]
+----
+{"status":"ok"}
+----
+
+== First Authenticated Request
+
+[source,bash]
+----
+curl https://api.fragmea.com/corpus/metadata \
+  -H "Authorization: Bearer $FRAGMEA_API_KEY"
+----
+
+== Basic Legal Search
+
+[source,bash]
+----
+curl https://api.fragmea.com/search \
+  -H "Authorization: Bearer $FRAGMEA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query":"náhrada škody"}'
+----
+
+The response creates a search workspace with:
+
+- session metadata
+- a decisions dataframe reference
+- a hits dataframe reference
+- optionally an arguments dataframe reference in follow-up workflows
+
+== Load a Stored Session
+
+[source,bash]
+----
+curl "https://api.fragmea.com/session/<session_id>" \
+  -H "Authorization: Bearer $FRAGMEA_API_KEY"
+----
+
+== Decision Detail
+
+[source,bash]
+----
+curl "https://api.fragmea.com/decision/<decision_id>?include_full_text=false" \
+  -H "Authorization: Bearer $FRAGMEA_API_KEY"
+----
+
+== Decision Fulltext Search
+
+[source,bash]
+----
+curl https://api.fragmea.com/decision/fulltext-search \
+  -H "Authorization: Bearer $FRAGMEA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "identifier": "<decision_id_or_case_number>",
+    "query": "přípustnost dovolání",
+    "mode": "phrase",
+    "limit": 10,
+    "context_chars": 120
+  }'
+----
+
+== Search Within Existing Decision Slice
+
+[source,bash]
+----
+curl https://api.fragmea.com/decisions/search-within-dataframe \
+  -H "Authorization: Bearer $FRAGMEA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "ref": "nsoud-search-session:123:decisions",
+    "query": "promlčení nároku"
+  }'
+----
+
+== Generic Dataframe Query Example
+
+[source,bash]
+----
+curl https://api.fragmea.com/dataframe/query \
+  -H "Authorization: Bearer $FRAGMEA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "ref": "nsoud-search-session:123:hits",
+    "select": ["decision_id", "case_number", "snippet", "score"],
+    "sort": [{"field":"score","direction":"desc"}],
+    "limit": 5,
+    "offset": 0
+  }'
+----
+
+== Typed Decision Aggregate Example
+
+[source,bash]
+----
+curl https://api.fragmea.com/decisions/aggregate \
+  -H "Authorization: Bearer $FRAGMEA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "ref": "nsoud-search-session:123:decisions",
+    "group_by": [{"field":"review_stage"}],
+    "metrics": [{"op":"count","alias":"decision_count"}],
+    "limit": 20
+  }'
+----
+

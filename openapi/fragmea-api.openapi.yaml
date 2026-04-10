@@ -1,0 +1,841 @@
+openapi: 3.1.0
+info:
+  title: FRAGMEA API
+  version: 1.0.0
+  description: |
+    Public HTTP API for FRAGMEA legal search, decision retrieval, and dataframe-based analysis workflows.
+
+    All endpoints except `/health` require `Authorization: Bearer <api_key>`.
+servers:
+  - url: https://api.fragmea.com
+    description: Public production endpoint
+security:
+  - bearerAuth: []
+tags:
+  - name: health
+  - name: corpus
+  - name: search
+  - name: decisions
+  - name: dataframe
+  - name: hits
+  - name: arguments
+paths:
+  /health:
+    get:
+      tags: [health]
+      summary: Health check
+      description: Simple liveness endpoint for the API process.
+      security: []
+      responses:
+        '200':
+          description: Service is alive
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                required: [status]
+  /corpus/metadata:
+    get:
+      tags: [corpus]
+      summary: Get corpus metadata
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericObject'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /search:
+    post:
+      tags: [search]
+      summary: Find relevant decisions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericObject'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /session/{session_id}:
+    get:
+      tags: [search]
+      summary: Get search session
+      parameters:
+        - $ref: '#/components/parameters/session_id'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericObject'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /decision/{identifier}:
+    get:
+      tags: [decisions]
+      summary: Get decision detail
+      parameters:
+        - $ref: '#/components/parameters/identifier'
+        - name: include_full_text
+          in: query
+          schema:
+            type: boolean
+            default: false
+        - name: select
+          in: query
+          description: Optional repeated query parameter for selected fields.
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericObject'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /decision/{identifier}/hits:
+    get:
+      tags: [decisions]
+      summary: Get decision hits
+      parameters:
+        - $ref: '#/components/parameters/identifier'
+        - name: session_id
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 200
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericObject'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /decision/semantic-search:
+    post:
+      tags: [decisions]
+      summary: Search decision segments semantically
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DecisionSemanticSearchRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /decision/fulltext-search:
+    post:
+      tags: [decisions]
+      summary: Search decision full text
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DecisionFulltextSearchRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /decisions/search-within-dataframe:
+    post:
+      tags: [search]
+      summary: Search within decisions dataframe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchWithinDataframeDecisionsRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /decisions/filter:
+    post:
+      tags: [decisions]
+      summary: Filter decisions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DecisionsFilterRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericObject'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /dataframe/describe:
+    post:
+      tags: [dataframe]
+      summary: Describe dataframe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataframeDescribeRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericObject'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /dataframe/query:
+    post:
+      tags: [dataframe]
+      summary: Query dataframe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataframeQueryRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericObject'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /dataframe/filter:
+    post:
+      tags: [dataframe]
+      summary: Filter dataframe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataframeFilterRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericObject'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /dataframe/aggregate:
+    post:
+      tags: [dataframe]
+      summary: Aggregate dataframe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataframeAggregateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericObject'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /arguments/expand:
+    post:
+      tags: [arguments]
+      summary: Expand decisions to arguments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArgumentsExpandRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericObject'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /hits/expand-to-arguments:
+    post:
+      tags: [arguments]
+      summary: Expand hits to arguments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HitsExpandToArgumentsRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericObject'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /decisions/query:
+    post:
+      tags: [decisions]
+      summary: Query decisions dataframe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TypedDataframeRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericObject'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /decisions/filter-dataframe:
+    post:
+      tags: [decisions]
+      summary: Filter decisions dataframe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TypedDataframeFilterRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericObject'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /decisions/aggregate:
+    post:
+      tags: [decisions]
+      summary: Aggregate decisions dataframe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TypedDataframeAggregateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericObject'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /hits/query:
+    post:
+      tags: [hits]
+      summary: Query hits dataframe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TypedDataframeRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericObject'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /hits/filter:
+    post:
+      tags: [hits]
+      summary: Filter hits dataframe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TypedDataframeFilterRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericObject'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /hits/aggregate:
+    post:
+      tags: [hits]
+      summary: Aggregate hits dataframe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TypedDataframeAggregateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericObject'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /arguments/query:
+    post:
+      tags: [arguments]
+      summary: Query arguments dataframe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TypedDataframeRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericObject'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /arguments/filter:
+    post:
+      tags: [arguments]
+      summary: Filter arguments dataframe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TypedDataframeFilterRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericObject'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /arguments/aggregate:
+    post:
+      tags: [arguments]
+      summary: Aggregate arguments dataframe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TypedDataframeAggregateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericObject'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API key
+  parameters:
+    identifier:
+      name: identifier
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Decision identifier or case number.
+    session_id:
+      name: session_id
+      in: path
+      required: true
+      schema:
+        type: string
+  responses:
+    GenericObject:
+      description: Generic JSON object response
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: true
+    BadRequest:
+      description: Request payload is invalid for the requested operation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Missing or invalid bearer token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Requested decision or related resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        detail:
+          oneOf:
+            - type: string
+            - type: object
+            - type: array
+              items: {}
+      additionalProperties: true
+    SearchRequest:
+      type: object
+      additionalProperties: false
+      required: [query]
+      properties:
+        query:
+          type: string
+          description: Natural-language legal query.
+    SearchWithinDataframeDecisionsRequest:
+      type: object
+      additionalProperties: false
+      required: [ref, query]
+      properties:
+        ref:
+          type: string
+          description: Existing decisions dataframe reference to search within.
+        query:
+          type: string
+          description: Natural-language legal query scoped to the referenced decisions dataframe.
+    DecisionSemanticSearchRequest:
+      type: object
+      additionalProperties: false
+      required: [identifier, query]
+      properties:
+        identifier:
+          type: string
+        query:
+          type: string
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 12
+    DecisionFulltextSearchRequest:
+      type: object
+      additionalProperties: false
+      required: [identifier, query]
+      properties:
+        identifier:
+          type: string
+        query:
+          type: string
+        mode:
+          type: string
+          enum: [contains, phrase]
+          default: contains
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 200
+          default: 20
+        context_chars:
+          type: integer
+          minimum: 20
+          maximum: 1000
+          default: 160
+    DecisionsFilterRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        decision_id:
+          type: string
+        case_number:
+          type: string
+        decision_title:
+          type: string
+        prompt_kind:
+          type: string
+        detected_agenda:
+          type: string
+        ecli:
+          type: string
+        subject:
+          type: string
+        legalSentenceText:
+          type: string
+        decisionDate:
+          type: string
+        decisionDateFrom:
+          type: string
+        decisionDateTo:
+          type: string
+        courtLevel:
+          type: string
+        decisionForm:
+          type: string
+        caseDomain:
+          type: string
+        reviewStage:
+          type: string
+        dispositionType:
+          type: string
+        hearingType:
+          type: string
+        insolvencyProceedingType:
+          type: string
+        insolvencyMatterType:
+          type: string
+        executionMatterType:
+          type: string
+        enforcementType:
+          type: string
+        probateMatterType:
+          type: string
+        jurisdictionMatterType:
+          type: string
+        sort:
+          type: array
+          items:
+            $ref: '#/components/schemas/SortItem'
+        limit:
+          type: integer
+          default: 200
+    DataframeDescribeRequest:
+      type: object
+      additionalProperties: false
+      required: [ref]
+      properties:
+        ref:
+          type: string
+    FilterItem:
+      type: object
+      additionalProperties: false
+      required: [field]
+      properties:
+        field:
+          type: string
+        op:
+          type: string
+          enum: [eq, ne, in, contains, gte, lte, gt, lt]
+          default: eq
+        value:
+          oneOf:
+            - type: string
+            - type: number
+            - type: integer
+            - type: boolean
+            - type: array
+              items:
+                oneOf:
+                  - type: string
+                  - type: number
+                  - type: integer
+                  - type: boolean
+                  - type: 'null'
+            - type: 'null'
+    SortItem:
+      type: object
+      additionalProperties: false
+      required: [field]
+      properties:
+        field:
+          type: string
+        direction:
+          type: string
+          enum: [asc, desc]
+          default: asc
+    GroupByItem:
+      type: object
+      additionalProperties: false
+      required: [field]
+      properties:
+        field:
+          type: string
+        label:
+          type: string
+        date_part:
+          type: string
+          enum: [year, month, day]
+    MetricItem:
+      type: object
+      additionalProperties: false
+      required: [op]
+      properties:
+        op:
+          type: string
+          enum: [count, sum, avg, min, max, percentage, percent, share, list, list_distinct]
+        field:
+          type: string
+        alias:
+          type: string
+    DataframeQueryRequest:
+      type: object
+      additionalProperties: false
+      required: [ref]
+      properties:
+        ref:
+          type: string
+        select:
+          type: array
+          items:
+            type: string
+        filters:
+          type: array
+          items:
+            $ref: '#/components/schemas/FilterItem'
+        sort:
+          type: array
+          items:
+            $ref: '#/components/schemas/SortItem'
+        limit:
+          type: integer
+          default: 100
+        offset:
+          type: integer
+          default: 0
+    DataframeFilterRequest:
+      type: object
+      additionalProperties: false
+      required: [ref]
+      properties:
+        ref:
+          type: string
+        filters:
+          type: array
+          items:
+            $ref: '#/components/schemas/FilterItem'
+        sort:
+          type: array
+          items:
+            $ref: '#/components/schemas/SortItem'
+        limit:
+          type: integer
+          default: 100
+        offset:
+          type: integer
+          default: 0
+    DataframeAggregateRequest:
+      type: object
+      additionalProperties: false
+      required: [ref]
+      properties:
+        ref:
+          type: string
+        group_by:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroupByItem'
+        metrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricItem'
+        filters:
+          type: array
+          items:
+            $ref: '#/components/schemas/FilterItem'
+        limit:
+          type: integer
+          default: 100
+    ArgumentsExpandRequest:
+      type: object
+      additionalProperties: false
+      required: [ref]
+      properties:
+        ref:
+          type: string
+          description: Decision dataframe reference.
+        source_types:
+          type: array
+          items:
+            type: string
+            enum: [APPELLANT_ARGUMENT, COUNTERPARTY_ARGUMENT, COURT_ARGUMENT, COURT_FINDING]
+        limit:
+          type: integer
+          default: 1000
+        offset:
+          type: integer
+          default: 0
+    HitsExpandToArgumentsRequest:
+      type: object
+      additionalProperties: false
+      required: [ref]
+      properties:
+        ref:
+          type: string
+          description: Hits dataframe reference.
+        source_types:
+          type: array
+          items:
+            type: string
+            enum: [APPELLANT_ARGUMENT, COUNTERPARTY_ARGUMENT, COURT_ARGUMENT, COURT_FINDING]
+        limit:
+          type: integer
+          default: 1000
+        offset:
+          type: integer
+          default: 0
+    TypedDataframeRequest:
+      type: object
+      additionalProperties: false
+      required: [ref]
+      properties:
+        ref:
+          type: string
+          description: Typed dataframe reference such as `nsoud-search-session:<id>:decisions`.
+        select:
+          type: array
+          items:
+            type: string
+        filters:
+          type: array
+          items:
+            $ref: '#/components/schemas/FilterItem'
+        sort:
+          type: array
+          items:
+            $ref: '#/components/schemas/SortItem'
+        limit:
+          type: integer
+          default: 100
+        offset:
+          type: integer
+          default: 0
+    TypedDataframeFilterRequest:
+      type: object
+      additionalProperties: false
+      required: [ref]
+      properties:
+        ref:
+          type: string
+        filters:
+          type: array
+          items:
+            $ref: '#/components/schemas/FilterItem'
+        sort:
+          type: array
+          items:
+            $ref: '#/components/schemas/SortItem'
+        limit:
+          type: integer
+          default: 100
+        offset:
+          type: integer
+          default: 0
+    TypedDataframeAggregateRequest:
+      type: object
+      additionalProperties: false
+      required: [ref]
+      properties:
+        ref:
+          type: string
+        group_by:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroupByItem'
+        metrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricItem'
+        filters:
+          type: array
+          items:
+            $ref: '#/components/schemas/FilterItem'
+        limit:
+          type: integer
+          default: 100
