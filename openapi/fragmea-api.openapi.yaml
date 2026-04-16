@@ -413,22 +413,42 @@ components:
       - YEAR
       - MONTH
       - DAY
-    DecisionAnalysisResponse:
+    DecisionAnalysisPayload:
       type: object
       properties:
+        courtLevel:
+          type: string
+        agenda:
+          type: string
+        decisionForm:
+          type: string
+        caseDomain:
+          type: string
+        reviewStage:
+          type: string
+        metadata:
+          $ref: "#/components/schemas/JsonNode"
         subject:
           type: string
         facts:
           type: array
           items:
             type: string
+        proceduralHistory:
+          $ref: "#/components/schemas/JsonNode"
         issues:
           type: array
           items:
             type: string
-        operativeOrders:
+        appellants:
+          $ref: "#/components/schemas/JsonNode"
+        appellant:
+          $ref: "#/components/schemas/JsonNode"
+        counterparty:
           $ref: "#/components/schemas/JsonNode"
         admissibility:
+          $ref: "#/components/schemas/JsonNode"
+        questionsRaisedByAppellant:
           $ref: "#/components/schemas/JsonNode"
         groundsInvoked:
           $ref: "#/components/schemas/JsonNode"
@@ -436,10 +456,50 @@ components:
           $ref: "#/components/schemas/JsonNode"
         counterpartyArguments:
           $ref: "#/components/schemas/JsonNode"
+        reviewScope:
+          $ref: "#/components/schemas/JsonNode"
         courtArguments:
           $ref: "#/components/schemas/JsonNode"
         reviewFindings:
           $ref: "#/components/schemas/JsonNode"
+        operativeOrders:
+          $ref: "#/components/schemas/JsonNode"
+        dispositionType:
+          type: string
+        hearingType:
+          type: string
+        costs:
+          $ref: "#/components/schemas/JsonNode"
+        bindingInstructionsToLowerCourt:
+          type: array
+          items:
+            type: string
+        precedentLinks:
+          type: array
+          items:
+            $ref: "#/components/schemas/DecisionPrecedentLinkPayload"
+        reviewedCounts:
+          $ref: "#/components/schemas/JsonNode"
+        reviewedSentence:
+          $ref: "#/components/schemas/JsonNode"
+        supremeCourtSentenceDisposition:
+          $ref: "#/components/schemas/JsonNode"
+        decisionDate:
+          type: string
+        familyMatterType:
+          type: string
+        insolvencyProceedingType:
+          type: string
+        insolvencyMatterType:
+          type: string
+        executionMatterType:
+          type: string
+        enforcementType:
+          type: string
+        probateMatterType:
+          type: string
+        jurisdictionMatterType:
+          type: string
     DecisionCaseDomain:
       type: string
       enum:
@@ -513,7 +573,7 @@ components:
         decision_date:
           type: string
         analysis:
-          $ref: "#/components/schemas/DecisionAnalysisResponse"
+          $ref: "#/components/schemas/DecisionAnalysisPayload"
         source:
           $ref: "#/components/schemas/DecisionSourceResponse"
     DecisionDetailResponse:
@@ -528,31 +588,47 @@ components:
     DecisionDetailSelectField:
       type: string
       enum:
-      - DECISION_ID
-      - CASE_NUMBER
-      - DECISION_TITLE
-      - ECLI
-      - DECISION_DATE
-      - ANALYSIS_SUBJECT
-      - ANALYSIS_FACTS
-      - ANALYSIS_ISSUES
-      - ANALYSIS_OPERATIVE_ORDERS
-      - ANALYSIS_ADMISSIBILITY
-      - ANALYSIS_GROUNDS_INVOKED
-      - ANALYSIS_APPELLANT_ARGUMENTS
-      - ANALYSIS_COUNTERPARTY_ARGUMENTS
-      - ANALYSIS_COURT_ARGUMENTS
-      - ANALYSIS_REVIEW_FINDINGS
-      - SOURCE_LEGAL_SENTENCE_TEXT
-      - SOURCE_OPERATIVE_PART_TEXT
-      - SOURCE_REASONING_TEXT
-      - SOURCE_FULL_TEXT
-      - SOURCE_PDF_URL
-    DecisionDetailSelectParam:
-      type: object
-      properties:
-        value:
-          $ref: "#/components/schemas/DecisionDetailSelectField"
+      - decision_id
+      - case_number
+      - decision_title
+      - ecli
+      - decision_date
+      - analysis
+      - analysis.courtLevel
+      - analysis.agenda
+      - analysis.decisionForm
+      - analysis.caseDomain
+      - analysis.reviewStage
+      - analysis.metadata
+      - analysis.subject
+      - analysis.facts
+      - analysis.proceduralHistory
+      - analysis.issues
+      - analysis.appellants
+      - analysis.appellant
+      - analysis.counterparty
+      - analysis.admissibility
+      - analysis.questionsRaisedByAppellant
+      - analysis.groundsInvoked
+      - analysis.appellantArguments
+      - analysis.counterpartyArguments
+      - analysis.reviewScope
+      - analysis.courtArguments
+      - analysis.reviewFindings
+      - analysis.operativeOrders
+      - analysis.dispositionType
+      - analysis.hearingType
+      - analysis.costs
+      - analysis.bindingInstructionsToLowerCourt
+      - analysis.precedentLinks
+      - analysis.reviewedCounts
+      - analysis.reviewedSentence
+      - analysis.supremeCourtSentenceDisposition
+      - source.legal_sentence_text
+      - source.operative_part_text
+      - source.reasoning_text
+      - source.full_text
+      - source.pdf_url
     DecisionDispositionType:
       type: string
       enum:
@@ -748,6 +824,21 @@ components:
           type: string
         column:
           $ref: "#/components/schemas/DecisionDataframeSelectField"
+    DecisionPrecedentLinkPayload:
+      type: object
+      properties:
+        fileNumber:
+          type: string
+        referenceText:
+          type: string
+        decisionDate:
+          type: string
+        court:
+          type: string
+        usage:
+          type: string
+        proposition:
+          type: string
     DecisionQueryFilter:
       type: object
       properties:
@@ -1939,7 +2030,7 @@ paths:
         schema:
           type: array
           items:
-            $ref: "#/components/schemas/DecisionDetailSelectParam"
+            $ref: "#/components/schemas/DecisionDetailSelectField"
       responses:
         "200":
           description: OK

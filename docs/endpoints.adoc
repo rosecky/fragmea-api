@@ -152,9 +152,9 @@
 The API uses immutable dataframe references that typically look like:
 
 ----
-nsoud-search-session:<session_id>:decisions
-nsoud-search-session:<session_id>:hits
-nsoud-search-session:<session_id>:arguments
+nsoud-search-session:<sessionId>:decisions
+nsoud-search-session:<sessionId>:hits
+nsoud-search-session:<sessionId>:arguments
 ----
 
 Expected kinds by endpoint family:

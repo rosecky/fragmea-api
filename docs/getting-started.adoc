@@ -65,7 +65,7 @@ The response creates a search workspace with:
 
 [source,bash]
 ----
-curl "https://api.fragmea.com/session/<session_id>" \
+curl "https://api.fragmea.com/session/<sessionId>" \
   -H "Authorization: Bearer $FRAGMEA_API_KEY"
 ----
 
@@ -81,7 +81,7 @@ curl "https://api.fragmea.com/decision/<decision_id>?include_full_text=false" \
 
 [source,bash]
 ----
-curl https://api.fragmea.com/decision/<decision_id_or_case_number>/fulltext-search \
+curl https://api.fragmea.com/decision/<identifier>/fulltext-search \
   -H "Authorization: Bearer $FRAGMEA_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -96,7 +96,7 @@ curl https://api.fragmea.com/decision/<decision_id_or_case_number>/fulltext-sear
 
 [source,bash]
 ----
-curl https://api.fragmea.com/decision/<decision_id_or_case_number>/semantic-search \
+curl https://api.fragmea.com/decision/<identifier>/semantic-search \
   -H "Authorization: Bearer $FRAGMEA_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
