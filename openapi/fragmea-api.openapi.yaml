@@ -1,547 +1,506 @@
+---
 openapi: 3.1.0
-info:
-  title: FRAGMEA API
-  version: 1.0.0
-  description: |
-    Public HTTP API for FRAGMEA legal search, decision retrieval, and dataframe-based analysis workflows.
-
-    All endpoints except `/health` require `Authorization: Bearer <api_key>`.
-servers:
-  - url: https://api.fragmea.com
-    description: Public production endpoint
-security:
-  - bearerAuth: []
-tags:
-  - name: health
-  - name: corpus
-  - name: search
-  - name: decisions
-  - name: dataframe
-  - name: hits
-  - name: arguments
-paths:
-  /health:
-    get:
-      tags: [health]
-      summary: Health check
-      description: Simple liveness endpoint for the API process.
-      security: []
-      responses:
-        '200':
-          description: Service is alive
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: ok
-                required: [status]
-  /corpus/metadata:
-    get:
-      tags: [corpus]
-      summary: Get corpus metadata
-      responses:
-        '200':
-          $ref: '#/components/responses/GenericObject'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-  /search:
-    post:
-      tags: [search]
-      summary: Find relevant decisions
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SearchRequest'
-      responses:
-        '200':
-          $ref: '#/components/responses/GenericObject'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-  /session/{session_id}:
-    get:
-      tags: [search]
-      summary: Get search session
-      parameters:
-        - $ref: '#/components/parameters/session_id'
-      responses:
-        '200':
-          $ref: '#/components/responses/GenericObject'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-  /decision/{identifier}:
-    get:
-      tags: [decisions]
-      summary: Get decision detail
-      parameters:
-        - $ref: '#/components/parameters/identifier'
-        - name: include_full_text
-          in: query
-          schema:
-            type: boolean
-            default: false
-        - name: select
-          in: query
-          description: Optional repeated query parameter for selected fields.
-          schema:
-            type: array
-            items:
-              type: string
-          style: form
-          explode: true
-      responses:
-        '200':
-          $ref: '#/components/responses/GenericObject'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-  /decision/{identifier}/hits:
-    get:
-      tags: [decisions]
-      summary: Get decision hits
-      parameters:
-        - $ref: '#/components/parameters/identifier'
-        - name: session_id
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            default: 20
-            minimum: 1
-            maximum: 200
-        - name: offset
-          in: query
-          schema:
-            type: integer
-            default: 0
-            minimum: 0
-      responses:
-        '200':
-          $ref: '#/components/responses/GenericObject'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-  /decision/semantic-search:
-    post:
-      tags: [decisions]
-      summary: Search decision segments semantically
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DecisionSemanticSearchRequest'
-      responses:
-        '200':
-          $ref: '#/components/responses/GenericObject'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-  /decision/fulltext-search:
-    post:
-      tags: [decisions]
-      summary: Search decision full text
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DecisionFulltextSearchRequest'
-      responses:
-        '200':
-          $ref: '#/components/responses/GenericObject'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-  /decisions/search-within-dataframe:
-    post:
-      tags: [search]
-      summary: Search within decisions dataframe
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SearchWithinDataframeDecisionsRequest'
-      responses:
-        '200':
-          $ref: '#/components/responses/GenericObject'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-  /decisions/filter:
-    post:
-      tags: [decisions]
-      summary: Filter decisions
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DecisionsFilterRequest'
-      responses:
-        '200':
-          $ref: '#/components/responses/GenericObject'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-  /dataframe/describe:
-    post:
-      tags: [dataframe]
-      summary: Describe dataframe
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DataframeDescribeRequest'
-      responses:
-        '200':
-          $ref: '#/components/responses/GenericObject'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-  /dataframe/query:
-    post:
-      tags: [dataframe]
-      summary: Query dataframe
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DataframeQueryRequest'
-      responses:
-        '200':
-          $ref: '#/components/responses/GenericObject'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-  /dataframe/filter:
-    post:
-      tags: [dataframe]
-      summary: Filter dataframe
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DataframeFilterRequest'
-      responses:
-        '200':
-          $ref: '#/components/responses/GenericObject'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-  /dataframe/aggregate:
-    post:
-      tags: [dataframe]
-      summary: Aggregate dataframe
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DataframeAggregateRequest'
-      responses:
-        '200':
-          $ref: '#/components/responses/GenericObject'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-  /arguments/expand:
-    post:
-      tags: [arguments]
-      summary: Expand decisions to arguments
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ArgumentsExpandRequest'
-      responses:
-        '200':
-          $ref: '#/components/responses/GenericObject'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-  /hits/expand-to-arguments:
-    post:
-      tags: [arguments]
-      summary: Expand hits to arguments
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/HitsExpandToArgumentsRequest'
-      responses:
-        '200':
-          $ref: '#/components/responses/GenericObject'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-  /decisions/query:
-    post:
-      tags: [decisions]
-      summary: Query decisions dataframe
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TypedDataframeRequest'
-      responses:
-        '200':
-          $ref: '#/components/responses/GenericObject'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-  /decisions/filter-dataframe:
-    post:
-      tags: [decisions]
-      summary: Filter decisions dataframe
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TypedDataframeFilterRequest'
-      responses:
-        '200':
-          $ref: '#/components/responses/GenericObject'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-  /decisions/aggregate:
-    post:
-      tags: [decisions]
-      summary: Aggregate decisions dataframe
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TypedDataframeAggregateRequest'
-      responses:
-        '200':
-          $ref: '#/components/responses/GenericObject'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-  /hits/query:
-    post:
-      tags: [hits]
-      summary: Query hits dataframe
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TypedDataframeRequest'
-      responses:
-        '200':
-          $ref: '#/components/responses/GenericObject'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-  /hits/filter:
-    post:
-      tags: [hits]
-      summary: Filter hits dataframe
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TypedDataframeFilterRequest'
-      responses:
-        '200':
-          $ref: '#/components/responses/GenericObject'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-  /hits/aggregate:
-    post:
-      tags: [hits]
-      summary: Aggregate hits dataframe
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TypedDataframeAggregateRequest'
-      responses:
-        '200':
-          $ref: '#/components/responses/GenericObject'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-  /arguments/query:
-    post:
-      tags: [arguments]
-      summary: Query arguments dataframe
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TypedDataframeRequest'
-      responses:
-        '200':
-          $ref: '#/components/responses/GenericObject'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-  /arguments/filter:
-    post:
-      tags: [arguments]
-      summary: Filter arguments dataframe
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TypedDataframeFilterRequest'
-      responses:
-        '200':
-          $ref: '#/components/responses/GenericObject'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-  /arguments/aggregate:
-    post:
-      tags: [arguments]
-      summary: Aggregate arguments dataframe
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TypedDataframeAggregateRequest'
-      responses:
-        '200':
-          $ref: '#/components/responses/GenericObject'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
 components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: API key
-  parameters:
-    identifier:
-      name: identifier
-      in: path
-      required: true
-      schema:
-        type: string
-      description: Decision identifier or case number.
-    session_id:
-      name: session_id
-      in: path
-      required: true
-      schema:
-        type: string
-  responses:
-    GenericObject:
-      description: Generic JSON object response
-      content:
-        application/json:
-          schema:
-            type: object
-            additionalProperties: true
-    BadRequest:
-      description: Request payload is invalid for the requested operation
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    Unauthorized:
-      description: Missing or invalid bearer token
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    NotFound:
-      description: Requested decision or related resource was not found
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
   schemas:
-    ErrorResponse:
+    ArgumentDataframeQueryRowResponse:
       type: object
       properties:
-        detail:
-          oneOf:
-            - type: string
-            - type: object
-            - type: array
-              items: {}
-      additionalProperties: true
-    SearchRequest:
-      type: object
-      additionalProperties: false
-      required: [query]
-      properties:
-        query:
+        row_rank:
+          type: integer
+          format: int32
+        argument_unit_id:
           type: string
-          description: Natural-language legal query.
-    SearchWithinDataframeDecisionsRequest:
+        decision_id:
+          type: string
+        case_number:
+          type: string
+        decision_title:
+          type: string
+        decision_date:
+          type: string
+        case_domain:
+          type: string
+        disposition_type:
+          type: string
+        relevance_tier:
+          type: string
+        speaker_type:
+          $ref: "#/components/schemas/ArgumentSpeakerType"
+        argument_kind:
+          $ref: "#/components/schemas/ArgumentKind"
+        source_path:
+          type: string
+        text:
+          type: string
+        reason:
+          type: string
+        topic:
+          type: string
+        target:
+          type: string
+        targeted_issues:
+          type: array
+          items:
+            type: string
+        asserted_grounds:
+          type: array
+          items:
+            type: string
+        court_assessment:
+          type: string
+        outcome_for_argument:
+          type: string
+        success_mode:
+          type: string
+        regulation_keys:
+          type: array
+          items:
+            type: string
+        precedent_keys:
+          type: array
+          items:
+            type: string
+    ArgumentDataframeSelectField:
+      type: string
+      enum:
+      - row_rank
+      - argument_unit_id
+      - decision_id
+      - case_number
+      - decision_title
+      - decision_date
+      - case_domain
+      - disposition_type
+      - relevance_tier
+      - speaker_type
+      - argument_kind
+      - source_path
+      - text
+      - reason
+      - topic
+      - target
+      - targeted_issues
+      - asserted_grounds
+      - court_assessment
+      - outcome_for_argument
+      - success_mode
+      - regulation_keys
+      - precedent_keys
+    ArgumentGroupByCriterion:
       type: object
-      additionalProperties: false
-      required: [ref, query]
+      properties:
+        column:
+          $ref: "#/components/schemas/ArgumentDataframeSelectField"
+        label:
+          type: string
+        datePart:
+          $ref: "#/components/schemas/DatePart"
+    ArgumentKind:
+      type: string
+      enum:
+      - legal
+      - factual
+      - unknown
+    ArgumentMetricCriterion:
+      type: object
+      properties:
+        operation:
+          $ref: "#/components/schemas/MetricOperation"
+        alias:
+          type: string
+        column:
+          $ref: "#/components/schemas/ArgumentDataframeSelectField"
+    ArgumentQueryFilter:
+      type: object
+      properties:
+        decision_id:
+          type: string
+        case_domains:
+          type: array
+          items:
+            $ref: "#/components/schemas/DecisionCaseDomain"
+        disposition_types:
+          type: array
+          items:
+            $ref: "#/components/schemas/DecisionDispositionType"
+        relevance_tiers:
+          type: array
+          items:
+            $ref: "#/components/schemas/DecisionRelevanceTier"
+        speaker_types:
+          type: array
+          items:
+            $ref: "#/components/schemas/ArgumentSpeakerType"
+        argument_kinds:
+          type: array
+          items:
+            $ref: "#/components/schemas/ArgumentKind"
+        source_path_contains:
+          type: string
+        text_contains:
+          type: string
+        topic_contains:
+          type: string
+        target_contains:
+          type: string
+        success_modes:
+          type: array
+          items:
+            type: string
+    ArgumentQuerySort:
+      type: object
+      properties:
+        column:
+          $ref: "#/components/schemas/ArgumentSortField"
+        direction:
+          $ref: "#/components/schemas/SortDirection"
+    ArgumentSortField:
+      type: string
+      enum:
+      - row_rank
+      - decision_date
+      - case_number
+      - relevance_tier
+    ArgumentSourceType:
+      type: object
+      properties:
+        speakerType:
+          $ref: "#/components/schemas/ArgumentSpeakerType"
+        argumentKind:
+          $ref: "#/components/schemas/ArgumentKind"
+    ArgumentSpeakerType:
+      type: string
+      enum:
+      - court
+      - appellant
+      - unknown
+    ArgumentsAggregateRequest:
+      type: object
+      required:
+      - ref
       properties:
         ref:
-          type: string
-          description: Existing decisions dataframe reference to search within.
-        query:
-          type: string
-          description: Natural-language legal query scoped to the referenced decisions dataframe.
-    DecisionSemanticSearchRequest:
-      type: object
-      additionalProperties: false
-      required: [identifier, query]
-      properties:
-        identifier:
-          type: string
-        query:
-          type: string
+          $ref: "#/components/schemas/ArgumentsDataframeRef"
+        groupBy:
+          type: array
+          items:
+            $ref: "#/components/schemas/ArgumentGroupByCriterion"
+        metrics:
+          type: array
+          items:
+            $ref: "#/components/schemas/ArgumentMetricCriterion"
+        filter:
+          $ref: "#/components/schemas/ArgumentQueryFilter"
         limit:
           type: integer
+          format: int32
           minimum: 1
-          maximum: 100
-          default: 12
-    DecisionFulltextSearchRequest:
+    ArgumentsDataframeRef:
+      description: "Arguments dataframe reference string. Send the raw string, not\
+        \ nested value wrappers."
+      type: string
+      examples:
+      - nsoud-search-session:410773c5-dd5e-43ff-ac59-64660fc344b9:arguments
+    ArgumentsFilterDataframeRequest:
       type: object
-      additionalProperties: false
-      required: [identifier, query]
+      required:
+      - ref
       properties:
-        identifier:
-          type: string
-        query:
-          type: string
-        mode:
-          type: string
-          enum: [contains, phrase]
-          default: contains
+        ref:
+          $ref: "#/components/schemas/ArgumentsDataframeRef"
+        filter:
+          $ref: "#/components/schemas/ArgumentQueryFilter"
+        sort:
+          type: array
+          items:
+            $ref: "#/components/schemas/ArgumentQuerySort"
+        offset:
+          type: integer
+          format: int32
+          minimum: 0
         limit:
           type: integer
+          format: int32
           minimum: 1
-          maximum: 200
-          default: 20
-        context_chars:
-          type: integer
-          minimum: 20
-          maximum: 1000
-          default: 160
-    DecisionsFilterRequest:
+    ArgumentsQueryRequest:
       type: object
-      additionalProperties: false
+      required:
+      - ref
+      properties:
+        ref:
+          $ref: "#/components/schemas/ArgumentsDataframeRef"
+        select:
+          type: array
+          items:
+            $ref: "#/components/schemas/ArgumentDataframeSelectField"
+        filter:
+          $ref: "#/components/schemas/ArgumentQueryFilter"
+        sort:
+          type: array
+          items:
+            $ref: "#/components/schemas/ArgumentQuerySort"
+        offset:
+          type: integer
+          format: int32
+          minimum: 0
+        limit:
+          type: integer
+          format: int32
+          minimum: 1
+    ColumnPath:
+      type: object
+      properties:
+        value:
+          type: string
+    CorpusMetadataResponse:
+      type: object
+      properties:
+        decisions_count:
+          type: integer
+          format: int64
+        decisions_with_legal_sentence_count:
+          type: integer
+          format: int64
+        decisions_with_case_domain_count:
+          type: integer
+          format: int64
+        decisions_with_review_stage_count:
+          type: integer
+          format: int64
+        run_label_count:
+          type: integer
+          format: int64
+        min_decision_date:
+          type: string
+        max_decision_date:
+          type: string
+        segments_count:
+          type: integer
+          format: int64
+        argument_units_count:
+          type: integer
+          format: int64
+        top_run_labels:
+          type: array
+          items:
+            $ref: "#/components/schemas/TopRunLabelResponse"
+    DataframeAggregateResponse:
+      type: object
+      properties:
+        dataframe_ref:
+          $ref: "#/components/schemas/DataframeRef"
+        session_id:
+          type: string
+        kind:
+          $ref: "#/components/schemas/DataframeKind"
+        row_count:
+          type: integer
+          format: int32
+        rows:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+    DataframeColumnResponse:
+      type: object
+      properties:
+        name:
+          type: string
+        python_type:
+          type: string
+    DataframeDescribeResponse:
+      type: object
+      properties:
+        dataframe_ref:
+          $ref: "#/components/schemas/DataframeRef"
+        session_id:
+          type: string
+        kind:
+          $ref: "#/components/schemas/DataframeKind"
+        row_count:
+          type: integer
+          format: int32
+        columns:
+          type: array
+          items:
+            $ref: "#/components/schemas/DataframeColumnResponse"
+    DataframeKind:
+      type: string
+      enum:
+      - decisions
+      - hits
+      - arguments
+    DataframeQueryResponseArgumentDataframeQueryRowResponse:
+      type: object
+      properties:
+        dataframe_ref:
+          $ref: "#/components/schemas/DataframeRef"
+        session_id:
+          type: string
+        kind:
+          $ref: "#/components/schemas/DataframeKind"
+        row_count:
+          type: integer
+          format: int32
+        rows:
+          type: array
+          items:
+            $ref: "#/components/schemas/ArgumentDataframeQueryRowResponse"
+    DataframeQueryResponseDecisionDataframeQueryRowResponse:
+      type: object
+      properties:
+        dataframe_ref:
+          $ref: "#/components/schemas/DataframeRef"
+        session_id:
+          type: string
+        kind:
+          $ref: "#/components/schemas/DataframeKind"
+        row_count:
+          type: integer
+          format: int32
+        rows:
+          type: array
+          items:
+            $ref: "#/components/schemas/DecisionDataframeQueryRowResponse"
+    DataframeQueryResponseHitDataframeQueryRowResponse:
+      type: object
+      properties:
+        dataframe_ref:
+          $ref: "#/components/schemas/DataframeRef"
+        session_id:
+          type: string
+        kind:
+          $ref: "#/components/schemas/DataframeKind"
+        row_count:
+          type: integer
+          format: int32
+        rows:
+          type: array
+          items:
+            $ref: "#/components/schemas/HitDataframeQueryRowResponse"
+    DataframeRef:
+      description: "Dataframe reference string. Send the raw string, not nested value\
+        \ wrappers."
+      type: string
+      examples:
+      - nsoud-search-session:410773c5-dd5e-43ff-ac59-64660fc344b9:hits
+    DataframeSessionResponse:
+      type: object
+      properties:
+        session_id:
+          type: string
+        source_dataframe_ref:
+          $ref: "#/components/schemas/DataframeRef"
+        dataframe_ref:
+          $ref: "#/components/schemas/DataframeRef"
+        kind:
+          $ref: "#/components/schemas/DataframeKind"
+        decisions_dataframe_ref:
+          $ref: "#/components/schemas/DecisionsDataframeRef"
+        hits_dataframe_ref:
+          $ref: "#/components/schemas/HitsDataframeRef"
+        arguments_dataframe_ref:
+          $ref: "#/components/schemas/ArgumentsDataframeRef"
+        candidate_count:
+          type: integer
+          format: int32
+        row_count:
+          type: integer
+          format: int32
+    DatePart:
+      type: string
+      enum:
+      - YEAR
+      - MONTH
+      - DAY
+    DecisionAnalysisResponse:
+      type: object
+      properties:
+        subject:
+          type: string
+        facts:
+          type: array
+          items:
+            type: string
+        issues:
+          type: array
+          items:
+            type: string
+        operativeOrders:
+          $ref: "#/components/schemas/JsonNode"
+        admissibility:
+          $ref: "#/components/schemas/JsonNode"
+        groundsInvoked:
+          $ref: "#/components/schemas/JsonNode"
+        appellantArguments:
+          $ref: "#/components/schemas/JsonNode"
+        counterpartyArguments:
+          $ref: "#/components/schemas/JsonNode"
+        courtArguments:
+          $ref: "#/components/schemas/JsonNode"
+        reviewFindings:
+          $ref: "#/components/schemas/JsonNode"
+    DecisionCaseDomain:
+      type: string
+      enum:
+      - civil
+      - criminal
+    DecisionDataframeQueryRowResponse:
+      type: object
+      properties:
+        rank:
+          type: integer
+          format: int32
+        decision_id:
+          type: string
+        case_number:
+          type: string
+        case_domain:
+          type: string
+        subject:
+          type: string
+        legal_sentence_text:
+          type: string
+        decision_date:
+          type: string
+        decision_form:
+          type: string
+        disposition_type:
+          type: string
+        relevance_tier:
+          type: string
+        best_semantic_score:
+          type: number
+          format: double
+        best_semantic_hit_text:
+          type: string
+        matched_regulation_keys:
+          type: array
+          items:
+            type: string
+        matched_precedent_keys:
+          type: array
+          items:
+            type: string
+    DecisionDataframeSelectField:
+      type: string
+      enum:
+      - rank
+      - decision_id
+      - case_number
+      - case_domain
+      - subject
+      - legal_sentence_text
+      - decision_date
+      - decision_form
+      - disposition_type
+      - relevance_tier
+      - best_semantic_score
+      - best_semantic_hit_text
+      - matched_regulation_keys
+      - matched_precedent_keys
+    DecisionDetailPayloadResponse:
+      type: object
       properties:
         decision_id:
           type: string
@@ -549,293 +508,1758 @@ components:
           type: string
         decision_title:
           type: string
-        prompt_kind:
-          type: string
-        detected_agenda:
-          type: string
         ecli:
+          type: string
+        decision_date:
+          type: string
+        analysis:
+          $ref: "#/components/schemas/DecisionAnalysisResponse"
+        source:
+          $ref: "#/components/schemas/DecisionSourceResponse"
+    DecisionDetailResponse:
+      type: object
+      properties:
+        decision:
+          $ref: "#/components/schemas/DecisionDetailPayloadResponse"
+        has_full_text_available:
+          type: boolean
+        resolved_by:
+          type: string
+    DecisionDetailSelectField:
+      type: string
+      enum:
+      - DECISION_ID
+      - CASE_NUMBER
+      - DECISION_TITLE
+      - ECLI
+      - DECISION_DATE
+      - ANALYSIS_SUBJECT
+      - ANALYSIS_FACTS
+      - ANALYSIS_ISSUES
+      - ANALYSIS_OPERATIVE_ORDERS
+      - ANALYSIS_ADMISSIBILITY
+      - ANALYSIS_GROUNDS_INVOKED
+      - ANALYSIS_APPELLANT_ARGUMENTS
+      - ANALYSIS_COUNTERPARTY_ARGUMENTS
+      - ANALYSIS_COURT_ARGUMENTS
+      - ANALYSIS_REVIEW_FINDINGS
+      - SOURCE_LEGAL_SENTENCE_TEXT
+      - SOURCE_OPERATIVE_PART_TEXT
+      - SOURCE_REASONING_TEXT
+      - SOURCE_FULL_TEXT
+      - SOURCE_PDF_URL
+    DecisionDetailSelectParam:
+      type: object
+      properties:
+        value:
+          $ref: "#/components/schemas/DecisionDetailSelectField"
+    DecisionDispositionType:
+      type: string
+      enum:
+      - allowed
+      - dismissed
+    DecisionFilterRequest:
+      type: object
+      properties:
+        ref:
+          $ref: "#/components/schemas/DecisionsDataframeRef"
+        filter:
+          $ref: "#/components/schemas/DecisionQueryFilter"
+        sort:
+          type: array
+          items:
+            $ref: "#/components/schemas/DecisionQuerySort"
+        offset:
+          type: integer
+          format: int32
+          minimum: 0
+        limit:
+          type: integer
+          format: int32
+          minimum: 1
+    DecisionFilterRequestPayload:
+      type: object
+      properties:
+        filters:
+          type: array
+          items:
+            $ref: "#/components/schemas/FilterCriterion"
+        sort:
+          type: array
+          items:
+            $ref: "#/components/schemas/SortCriterion"
+        limit:
+          type: integer
+          format: int32
+    DecisionFilterResultMode:
+      type: string
+      enum:
+      - filter_decisions
+    DecisionFilterResultPayload:
+      type: object
+      properties:
+        mode:
+          $ref: "#/components/schemas/DecisionFilterResultMode"
+        filters:
+          type: array
+          items:
+            $ref: "#/components/schemas/FilterCriterion"
+        sort:
+          type: array
+          items:
+            $ref: "#/components/schemas/SortCriterion"
+        limit:
+          type: integer
+          format: int32
+        matchedCount:
+          type: integer
+          format: int32
+    DecisionFulltextMatchResponse:
+      type: object
+      properties:
+        match_rank:
+          type: integer
+          format: int32
+        start_offset:
+          type: integer
+          format: int32
+        end_offset:
+          type: integer
+          format: int32
+        quote_text:
+          type: string
+        context_before:
+          type: string
+        context_after:
+          type: string
+    DecisionFulltextSearchMode:
+      type: string
+      enum:
+      - contains
+      - phrase
+    DecisionFulltextSearchRequest:
+      type: object
+      required:
+      - query
+      properties:
+        query:
+          type: string
+          pattern: \S
+        mode:
+          $ref: "#/components/schemas/DecisionFulltextSearchMode"
+        limit:
+          type: integer
+          format: int32
+          maximum: 200
+          minimum: 1
+        contextChars:
+          type: integer
+          format: int32
+          maximum: 1000
+          minimum: 20
+    DecisionFulltextSearchResponse:
+      type: object
+      properties:
+        identifier:
+          type: string
+        resolved_by:
+          type: string
+        query:
+          type: string
+        mode:
+          $ref: "#/components/schemas/DecisionFulltextSearchMode"
+        decision:
+          $ref: "#/components/schemas/DecisionSummaryResponse"
+        match_count:
+          type: integer
+          format: int32
+        rows:
+          type: array
+          items:
+            $ref: "#/components/schemas/DecisionFulltextMatchResponse"
+    DecisionGroupByCriterion:
+      type: object
+      properties:
+        column:
+          $ref: "#/components/schemas/DecisionDataframeSelectField"
+        label:
+          type: string
+        datePart:
+          $ref: "#/components/schemas/DatePart"
+    DecisionHitRowResponse:
+      type: object
+      properties:
+        hit_rank:
+          type: integer
+          format: int32
+        modality:
+          type: string
+        source_type:
+          type: string
+        facet:
+          type: string
+        path:
+          type: string
+        snippet:
+          type: string
+        score:
+          type: number
+          format: double
+        precedent_case_number:
+          type: string
+        argument_unit_id:
+          type: string
+        speaker_type:
+          $ref: "#/components/schemas/ArgumentSpeakerType"
+        argument_kind:
+          $ref: "#/components/schemas/ArgumentKind"
+        court_assessment:
+          type: string
+        outcome_for_argument:
+          type: string
+        reason:
+          type: string
+    DecisionHitsResponse:
+      type: object
+      properties:
+        session_id:
+          type: string
+        resolved_by:
+          type: string
+        decision:
+          $ref: "#/components/schemas/DecisionSummaryResponse"
+        dataframe_ref:
+          $ref: "#/components/schemas/HitsDataframeRef"
+        kind:
+          $ref: "#/components/schemas/DataframeKind"
+        row_count:
+          type: integer
+          format: int32
+        rows:
+          type: array
+          items:
+            $ref: "#/components/schemas/DecisionHitRowResponse"
+    DecisionMetricCriterion:
+      type: object
+      properties:
+        operation:
+          $ref: "#/components/schemas/MetricOperation"
+        alias:
+          type: string
+        column:
+          $ref: "#/components/schemas/DecisionDataframeSelectField"
+    DecisionQueryFilter:
+      type: object
+      properties:
+        case_domains:
+          type: array
+          items:
+            $ref: "#/components/schemas/DecisionCaseDomain"
+        disposition_types:
+          type: array
+          items:
+            $ref: "#/components/schemas/DecisionDispositionType"
+        relevance_tiers:
+          type: array
+          items:
+            $ref: "#/components/schemas/DecisionRelevanceTier"
+        decision_date_from:
+          $ref: "#/components/schemas/LocalDate"
+        decision_date_to:
+          $ref: "#/components/schemas/LocalDate"
+        rank_min:
+          type: integer
+          format: int32
+          minimum: 1
+        rank_max:
+          type: integer
+          format: int32
+          minimum: 1
+        best_semantic_score_min:
+          type: number
+          format: double
+        best_semantic_score_max:
+          type: number
+          format: double
+    DecisionQuerySort:
+      type: object
+      properties:
+        column:
+          $ref: "#/components/schemas/DecisionSortField"
+        direction:
+          $ref: "#/components/schemas/SortDirection"
+    DecisionRelevanceTier:
+      type: string
+      enum:
+      - HIGH
+      - MEDIUM
+      - LOW
+    DecisionSemanticHitPayloadResponse:
+      type: object
+      properties:
+        segment_id:
+          type: string
+        argument_unit_id:
+          type: string
+    DecisionSemanticHitResponse:
+      type: object
+      properties:
+        hit_rank:
+          type: integer
+          format: int32
+        modality:
+          type: string
+        source_type:
+          type: string
+        facet:
+          type: string
+        path:
+          type: string
+        snippet:
+          type: string
+        score:
+          type: number
+          format: double
+        court_assessment:
+          type: string
+        outcome_for_argument:
+          type: string
+        reason:
+          type: string
+        speaker_type:
+          $ref: "#/components/schemas/ArgumentSpeakerType"
+        argument_kind:
+          $ref: "#/components/schemas/ArgumentKind"
+        payload:
+          $ref: "#/components/schemas/DecisionSemanticHitPayloadResponse"
+    DecisionSemanticSearchRequest:
+      type: object
+      required:
+      - query
+      properties:
+        query:
+          type: string
+          pattern: \S
+        limit:
+          type: integer
+          format: int32
+          maximum: 100
+          minimum: 1
+    DecisionSemanticSearchResponse:
+      type: object
+      properties:
+        identifier:
+          type: string
+        resolved_by:
+          type: string
+        query:
+          type: string
+        decision:
+          $ref: "#/components/schemas/DecisionSummaryResponse"
+        match_count:
+          type: integer
+          format: int32
+        rows:
+          type: array
+          items:
+            $ref: "#/components/schemas/DecisionSemanticHitResponse"
+    DecisionSortField:
+      type: string
+      enum:
+      - rank
+      - decision_date
+      - case_number
+      - best_semantic_score
+    DecisionSourceResponse:
+      type: object
+      properties:
+        legal_sentence_text:
+          type: string
+        operative_part_text:
+          type: string
+        reasoning_text:
+          type: string
+        full_text:
+          type: string
+        pdf_url:
+          type: string
+    DecisionSummaryResponse:
+      type: object
+      properties:
+        decision_id:
+          type: string
+        case_number:
+          type: string
+        decision_title:
+          type: string
+        decision_date:
           type: string
         subject:
           type: string
-        legalSentenceText:
-          type: string
-        decisionDate:
-          type: string
-        decisionDateFrom:
-          type: string
-        decisionDateTo:
-          type: string
-        courtLevel:
-          type: string
-        decisionForm:
-          type: string
-        caseDomain:
-          type: string
-        reviewStage:
-          type: string
-        dispositionType:
-          type: string
-        hearingType:
-          type: string
-        insolvencyProceedingType:
-          type: string
-        insolvencyMatterType:
-          type: string
-        executionMatterType:
-          type: string
-        enforcementType:
-          type: string
-        probateMatterType:
-          type: string
-        jurisdictionMatterType:
-          type: string
+    DecisionsAggregateRequest:
+      type: object
+      required:
+      - ref
+      properties:
+        ref:
+          $ref: "#/components/schemas/DecisionsDataframeRef"
+        groupBy:
+          type: array
+          items:
+            $ref: "#/components/schemas/DecisionGroupByCriterion"
+        metrics:
+          type: array
+          items:
+            $ref: "#/components/schemas/DecisionMetricCriterion"
+        filter:
+          $ref: "#/components/schemas/DecisionQueryFilter"
+        limit:
+          type: integer
+          format: int32
+          minimum: 1
+    DecisionsDataframeRef:
+      description: "Decisions dataframe reference string. Send the raw string, not\
+        \ nested value wrappers."
+      type: string
+      examples:
+      - nsoud-search-session:410773c5-dd5e-43ff-ac59-64660fc344b9:decisions
+    DecisionsQueryRequest:
+      type: object
+      required:
+      - ref
+      properties:
+        ref:
+          $ref: "#/components/schemas/DecisionsDataframeRef"
+        select:
+          type: array
+          items:
+            $ref: "#/components/schemas/DecisionDataframeSelectField"
+        filter:
+          $ref: "#/components/schemas/DecisionQueryFilter"
         sort:
           type: array
           items:
-            $ref: '#/components/schemas/SortItem'
+            $ref: "#/components/schemas/DecisionQuerySort"
+        offset:
+          type: integer
+          format: int32
+          minimum: 0
         limit:
           type: integer
-          default: 200
-    DataframeDescribeRequest:
+          format: int32
+          minimum: 1
+    ExpandArgumentsRequestPayload:
       type: object
-      additionalProperties: false
-      required: [ref]
+      properties:
+        operation:
+          type: string
+        sourceDataframeRef:
+          type: string
+        sources:
+          type: array
+          items:
+            $ref: "#/components/schemas/ArgumentSourceType"
+        limit:
+          type: integer
+          format: int32
+        offset:
+          type: integer
+          format: int32
+    ExpandArgumentsResultPayload:
+      type: object
+      properties:
+        mode:
+          type: string
+        sourceDataframeRef:
+          type: string
+        sourceSessionId:
+          type: string
+        matchedCount:
+          type: integer
+          format: int32
+        returnedCount:
+          type: integer
+          format: int32
+        sources:
+          type: array
+          items:
+            $ref: "#/components/schemas/ArgumentSourceType"
+    ExpandDecisionArgumentsRequest:
+      type: object
+      required:
+      - ref
       properties:
         ref:
-          type: string
-    FilterItem:
+          $ref: "#/components/schemas/DecisionsDataframeRef"
+        sources:
+          type: array
+          items:
+            $ref: "#/components/schemas/ArgumentSourceType"
+        offset:
+          type: integer
+          format: int32
+          minimum: 0
+        limit:
+          type: integer
+          format: int32
+          minimum: 1
+    ExpandHitArgumentsRequest:
       type: object
-      additionalProperties: false
-      required: [field]
+      required:
+      - ref
       properties:
-        field:
-          type: string
-        op:
-          type: string
-          enum: [eq, ne, in, contains, gte, lte, gt, lt]
-          default: eq
+        ref:
+          $ref: "#/components/schemas/HitsDataframeRef"
+        sources:
+          type: array
+          items:
+            $ref: "#/components/schemas/ArgumentSourceType"
+        offset:
+          type: integer
+          format: int32
+          minimum: 0
+        limit:
+          type: integer
+          format: int32
+          minimum: 1
+    FilterCriterion:
+      type: object
+      properties:
+        column:
+          $ref: "#/components/schemas/ColumnPath"
+        operator:
+          $ref: "#/components/schemas/FilterOperator"
         value:
-          oneOf:
-            - type: string
-            - type: number
-            - type: integer
-            - type: boolean
-            - type: array
-              items:
-                oneOf:
-                  - type: string
-                  - type: number
-                  - type: integer
-                  - type: boolean
-                  - type: 'null'
-            - type: 'null'
-    SortItem:
+          $ref: "#/components/schemas/FilterValue"
+    FilterDataframeRequestPayload:
       type: object
-      additionalProperties: false
-      required: [field]
       properties:
-        field:
+        sourceDataframeRef:
           type: string
-        direction:
-          type: string
-          enum: [asc, desc]
-          default: asc
-    GroupByItem:
+        filters:
+          type: array
+          items:
+            $ref: "#/components/schemas/FilterCriterion"
+        sort:
+          type: array
+          items:
+            $ref: "#/components/schemas/SortCriterion"
+        limit:
+          type: integer
+          format: int32
+        offset:
+          type: integer
+          format: int32
+    FilterDataframeResultPayload:
       type: object
-      additionalProperties: false
-      required: [field]
       properties:
-        field:
+        mode:
           type: string
+        sourceDataframeRef:
+          type: string
+        sourceSessionId:
+          type: string
+        sourceKind:
+          type: string
+        filters:
+          type: array
+          items:
+            $ref: "#/components/schemas/FilterCriterion"
+        sort:
+          type: array
+          items:
+            $ref: "#/components/schemas/SortCriterion"
+        limit:
+          type: integer
+          format: int32
+        offset:
+          type: integer
+          format: int32
+        matchedCount:
+          type: integer
+          format: int32
+        returnedCount:
+          type: integer
+          format: int32
+    FilterOperator:
+      type: string
+      enum:
+      - eq
+      - ne
+      - gt
+      - gte
+      - lt
+      - lte
+      - contains
+      - in
+    FilterValue:
+      anyOf:
+      - type: string
+      - type: number
+      - type: boolean
+      - type: array
+        items: {}
+      description: "Scalar or array filter value. Send plain JSON such as \"court\"\
+        , 42, true, null or [\"court\", \"appellant\"]. Do not use the legacy {list,\
+        \ null, value} wrapper."
+      type:
+      - object
+      - "null"
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+    HitDataframeQueryRowResponse:
+      type: object
+      properties:
+        decision_id:
+          type: string
+        hit_rank:
+          type: integer
+          format: int32
+        modality:
+          type: string
+        source_type:
+          type: string
+        facet:
+          type: string
+        path:
+          type: string
+        snippet:
+          type: string
+        score:
+          type: number
+          format: double
+        regulation_key:
+          type: string
+        precedent_key:
+          type: string
+        case_number:
+          type: string
+        decision_title:
+          type: string
+        subject:
+          type: string
+        decision_date:
+          type: string
+        argument_text:
+          type: string
+        reason:
+          type: string
+        court_assessment:
+          type: string
+        outcome_for_argument:
+          type: string
+        speaker_type:
+          $ref: "#/components/schemas/ArgumentSpeakerType"
+        argument_kind:
+          $ref: "#/components/schemas/ArgumentKind"
+        precedent_case_number:
+          type: string
+        argument_unit_id:
+          type: string
+    HitDataframeSelectField:
+      type: string
+      enum:
+      - decision_id
+      - hit_rank
+      - modality
+      - source_type
+      - facet
+      - path
+      - snippet
+      - score
+      - regulation_key
+      - precedent_key
+      - case_number
+      - decision_title
+      - subject
+      - decision_date
+      - argument_text
+      - reason
+      - court_assessment
+      - outcome_for_argument
+      - speaker_type
+      - argument_kind
+      - precedent_case_number
+      - argument_unit_id
+    HitFacet:
+      type: string
+      enum:
+      - subject
+      - decision_title
+      - legal_sentence_text
+      - summary_blob
+      - facts
+      - issues
+      - operativeOrders
+      - admissibility
+      - groundsInvoked
+      - appellantArguments
+      - counterpartyArguments
+      - courtArguments
+      - reviewFindings
+      - precedent
+    HitGroupByCriterion:
+      type: object
+      properties:
+        column:
+          $ref: "#/components/schemas/HitDataframeSelectField"
         label:
           type: string
-        date_part:
-          type: string
-          enum: [year, month, day]
-    MetricItem:
+        datePart:
+          $ref: "#/components/schemas/DatePart"
+    HitMetricCriterion:
       type: object
-      additionalProperties: false
-      required: [op]
       properties:
-        op:
-          type: string
-          enum: [count, sum, avg, min, max, percentage, percent, share, list, list_distinct]
-        field:
-          type: string
+        operation:
+          $ref: "#/components/schemas/MetricOperation"
         alias:
           type: string
-    DataframeQueryRequest:
+        column:
+          $ref: "#/components/schemas/HitDataframeSelectField"
+    HitModality:
+      type: string
+      enum:
+      - semantic
+      - lexical
+      - regulation
+      - precedent
+    HitQueryFilter:
       type: object
-      additionalProperties: false
-      required: [ref]
       properties:
-        ref:
+        decision_id:
           type: string
-        select:
-          type: array
-          items:
-            type: string
-        filters:
-          type: array
-          items:
-            $ref: '#/components/schemas/FilterItem'
-        sort:
-          type: array
-          items:
-            $ref: '#/components/schemas/SortItem'
-        limit:
-          type: integer
-          default: 100
-        offset:
-          type: integer
-          default: 0
-    DataframeFilterRequest:
-      type: object
-      additionalProperties: false
-      required: [ref]
-      properties:
-        ref:
+        argument_unit_id:
           type: string
-        filters:
-          type: array
-          items:
-            $ref: '#/components/schemas/FilterItem'
-        sort:
-          type: array
-          items:
-            $ref: '#/components/schemas/SortItem'
-        limit:
-          type: integer
-          default: 100
-        offset:
-          type: integer
-          default: 0
-    DataframeAggregateRequest:
-      type: object
-      additionalProperties: false
-      required: [ref]
-      properties:
-        ref:
+        snippet_contains:
           type: string
-        group_by:
+        modalities:
           type: array
           items:
-            $ref: '#/components/schemas/GroupByItem'
-        metrics:
-          type: array
-          items:
-            $ref: '#/components/schemas/MetricItem'
-        filters:
-          type: array
-          items:
-            $ref: '#/components/schemas/FilterItem'
-        limit:
-          type: integer
-          default: 100
-    ArgumentsExpandRequest:
-      type: object
-      additionalProperties: false
-      required: [ref]
-      properties:
-        ref:
-          type: string
-          description: Decision dataframe reference.
+            $ref: "#/components/schemas/HitModality"
         source_types:
           type: array
           items:
-            type: string
-            enum: [APPELLANT_ARGUMENT, COUNTERPARTY_ARGUMENT, COURT_ARGUMENT, COURT_FINDING]
-        limit:
-          type: integer
-          default: 1000
-        offset:
-          type: integer
-          default: 0
-    HitsExpandToArgumentsRequest:
+            $ref: "#/components/schemas/HitSourceType"
+        facets:
+          type: array
+          items:
+            $ref: "#/components/schemas/HitFacet"
+        speaker_types:
+          type: array
+          items:
+            $ref: "#/components/schemas/ArgumentSpeakerType"
+        argument_kinds:
+          type: array
+          items:
+            $ref: "#/components/schemas/ArgumentKind"
+        score_min:
+          type: number
+          format: double
+        score_max:
+          type: number
+          format: double
+    HitQuerySort:
       type: object
-      additionalProperties: false
-      required: [ref]
+      properties:
+        column:
+          $ref: "#/components/schemas/HitSortField"
+        direction:
+          $ref: "#/components/schemas/SortDirection"
+    HitSortField:
+      type: string
+      enum:
+      - hit_rank
+      - score
+      - decision_date
+      - case_number
+    HitSourceType:
+      type: string
+      enum:
+      - analysis
+      - decision
+    HitsAggregateRequest:
+      type: object
+      required:
+      - ref
       properties:
         ref:
-          type: string
-          description: Hits dataframe reference.
-        source_types:
+          $ref: "#/components/schemas/HitsDataframeRef"
+        groupBy:
           type: array
           items:
-            type: string
-            enum: [APPELLANT_ARGUMENT, COUNTERPARTY_ARGUMENT, COURT_ARGUMENT, COURT_FINDING]
-        limit:
-          type: integer
-          default: 1000
-        offset:
-          type: integer
-          default: 0
-    TypedDataframeRequest:
-      type: object
-      additionalProperties: false
-      required: [ref]
-      properties:
-        ref:
-          type: string
-          description: Typed dataframe reference such as `nsoud-search-session:<id>:decisions`.
-        select:
-          type: array
-          items:
-            type: string
-        filters:
-          type: array
-          items:
-            $ref: '#/components/schemas/FilterItem'
-        sort:
-          type: array
-          items:
-            $ref: '#/components/schemas/SortItem'
-        limit:
-          type: integer
-          default: 100
-        offset:
-          type: integer
-          default: 0
-    TypedDataframeFilterRequest:
-      type: object
-      additionalProperties: false
-      required: [ref]
-      properties:
-        ref:
-          type: string
-        filters:
-          type: array
-          items:
-            $ref: '#/components/schemas/FilterItem'
-        sort:
-          type: array
-          items:
-            $ref: '#/components/schemas/SortItem'
-        limit:
-          type: integer
-          default: 100
-        offset:
-          type: integer
-          default: 0
-    TypedDataframeAggregateRequest:
-      type: object
-      additionalProperties: false
-      required: [ref]
-      properties:
-        ref:
-          type: string
-        group_by:
-          type: array
-          items:
-            $ref: '#/components/schemas/GroupByItem'
+            $ref: "#/components/schemas/HitGroupByCriterion"
         metrics:
           type: array
           items:
-            $ref: '#/components/schemas/MetricItem'
-        filters:
-          type: array
-          items:
-            $ref: '#/components/schemas/FilterItem'
+            $ref: "#/components/schemas/HitMetricCriterion"
+        filter:
+          $ref: "#/components/schemas/HitQueryFilter"
         limit:
           type: integer
-          default: 100
+          format: int32
+          minimum: 1
+    HitsDataframeRef:
+      description: "Hits dataframe reference string. Send the raw string, not nested\
+        \ value wrappers."
+      type: string
+      examples:
+      - nsoud-search-session:410773c5-dd5e-43ff-ac59-64660fc344b9:hits
+    HitsFilterDataframeRequest:
+      type: object
+      required:
+      - ref
+      properties:
+        ref:
+          $ref: "#/components/schemas/HitsDataframeRef"
+        filter:
+          $ref: "#/components/schemas/HitQueryFilter"
+        sort:
+          type: array
+          items:
+            $ref: "#/components/schemas/HitQuerySort"
+        offset:
+          type: integer
+          format: int32
+          minimum: 0
+        limit:
+          type: integer
+          format: int32
+          minimum: 1
+    HitsQueryRequest:
+      type: object
+      required:
+      - ref
+      properties:
+        ref:
+          $ref: "#/components/schemas/HitsDataframeRef"
+        select:
+          type: array
+          items:
+            $ref: "#/components/schemas/HitDataframeSelectField"
+        filter:
+          $ref: "#/components/schemas/HitQueryFilter"
+        sort:
+          type: array
+          items:
+            $ref: "#/components/schemas/HitQuerySort"
+        offset:
+          type: integer
+          format: int32
+          minimum: 0
+        limit:
+          type: integer
+          format: int32
+          minimum: 1
+    HybridSearchCandidatePayload:
+      type: object
+      properties:
+        decisionId:
+          type: string
+        rerankScore:
+          type: number
+          format: double
+    HybridSearchPreviewSemanticHitResponse:
+      type: object
+      properties:
+        facet:
+          type: string
+        path:
+          type: string
+        score:
+          type: number
+          format: double
+        text:
+          type: string
+    HybridSearchQueryVariantsPayload:
+      type: object
+      properties:
+        lexicalQuery:
+          type: string
+        semanticQuery:
+          type: string
+    HybridSearchRelevanceTierCountsPayload:
+      type: object
+      properties:
+        high:
+          type: integer
+          format: int32
+        medium:
+          type: integer
+          format: int32
+        low:
+          type: integer
+          format: int32
+    HybridSearchRequestPayload:
+      type: object
+      properties:
+        query:
+          type: string
+        semanticQuery:
+          type: string
+        sourceDataframeRef:
+          $ref: "#/components/schemas/DataframeRef"
+        scopedDecisionCount:
+          type: integer
+          format: int32
+    HybridSearchResponse:
+      type: object
+      properties:
+        query:
+          type: string
+        session_id:
+          type: string
+        decisions_dataframe_ref:
+          $ref: "#/components/schemas/DecisionsDataframeRef"
+        hits_dataframe_ref:
+          $ref: "#/components/schemas/HitsDataframeRef"
+        source_dataframe_ref:
+          $ref: "#/components/schemas/DataframeRef"
+        scoped_decision_count:
+          type: integer
+          format: int32
+        candidate_count:
+          type: integer
+          format: int32
+        top_rows:
+          type: array
+          items:
+            $ref: "#/components/schemas/HybridSearchTopRowResponse"
+        timings_ms:
+          $ref: "#/components/schemas/HybridSearchTimingsResponse"
+    HybridSearchResultPayload:
+      type: object
+      properties:
+        regulationKeys:
+          type: array
+          items:
+            type: string
+        precedentKeys:
+          type: array
+          items:
+            type: string
+        searchThresholds:
+          $ref: "#/components/schemas/HybridSearchThresholdsPayload"
+        lexicalRetainedCount:
+          type: integer
+          format: int32
+        semanticRetainedCount:
+          type: integer
+          format: int32
+        relevanceTierCounts:
+          $ref: "#/components/schemas/HybridSearchRelevanceTierCountsPayload"
+        lexicalHits:
+          type: array
+          items:
+            type: string
+        semanticHits:
+          type: array
+          items:
+            type: string
+        fusedIds:
+          type: array
+          items:
+            type: string
+        rerankedCandidates:
+          type: array
+          items:
+            $ref: "#/components/schemas/HybridSearchCandidatePayload"
+        semanticPreview:
+          type: array
+          items:
+            $ref: "#/components/schemas/HybridSearchSemanticPreviewPayload"
+        timingsMs:
+          $ref: "#/components/schemas/HybridSearchTimingsPayload"
+        queryVariants:
+          $ref: "#/components/schemas/HybridSearchQueryVariantsPayload"
+        sourceDataframeRef:
+          $ref: "#/components/schemas/DataframeRef"
+        scopedDecisionCount:
+          type: integer
+          format: int32
+    HybridSearchSemanticPreviewPayload:
+      type: object
+      properties:
+        decisionId:
+          type: string
+        segmentId:
+          type: string
+        argumentUnitId:
+          type: string
+        facet:
+          type: string
+        score:
+          type: number
+          format: double
+        text:
+          type: string
+    HybridSearchThresholdsPayload:
+      type: object
+      properties:
+        semanticMinScore:
+          type: number
+          format: double
+        semanticScoreRatio:
+          type: number
+          format: double
+        semanticKeepAtLeast:
+          type: integer
+          format: int32
+        lexicalMinScore:
+          type: number
+          format: double
+        lexicalScoreRatio:
+          type: number
+          format: double
+        lexicalKeepAtLeast:
+          type: integer
+          format: int32
+        relevanceSemanticHigh:
+          type: number
+          format: double
+        relevanceSemanticMedium:
+          type: number
+          format: double
+        relevanceLexicalHigh:
+          type: number
+          format: double
+        relevanceLexicalMedium:
+          type: number
+          format: double
+    HybridSearchTimingsPayload:
+      type: object
+      properties:
+        citationExtraction:
+          type: number
+          format: double
+        lexicalEs:
+          type: number
+          format: double
+        semanticEmbed:
+          type: number
+          format: double
+        semanticEs:
+          type: number
+          format: double
+        parallelSearchWall:
+          type: number
+          format: double
+        dbFetchDecisions:
+          type: number
+          format: double
+        rerank:
+          type: number
+          format: double
+        buildRows:
+          type: number
+          format: double
+        sessionPersist:
+          type: number
+          format: double
+        total:
+          type: number
+          format: double
+    HybridSearchTimingsResponse:
+      type: object
+      properties:
+        citation_extraction:
+          type: number
+          format: double
+        lexical_es:
+          type: number
+          format: double
+        semantic_embed:
+          type: number
+          format: double
+        semantic_es:
+          type: number
+          format: double
+        parallel_search_wall:
+          type: number
+          format: double
+        db_fetch_decisions:
+          type: number
+          format: double
+        rerank:
+          type: number
+          format: double
+        build_rows:
+          type: number
+          format: double
+        session_persist:
+          type: number
+          format: double
+        total:
+          type: number
+          format: double
+    HybridSearchTopRowPayloadResponse:
+      type: object
+      properties:
+        ecli:
+          type: string
+        decision_date:
+          type: string
+        subject:
+          type: string
+        rerank_score:
+          type: number
+          format: double
+        semantic_top3_hits:
+          type: array
+          items:
+            $ref: "#/components/schemas/HybridSearchPreviewSemanticHitResponse"
+    HybridSearchTopRowResponse:
+      type: object
+      properties:
+        decision_id:
+          type: string
+        case_number:
+          type: string
+        payload:
+          $ref: "#/components/schemas/HybridSearchTopRowPayloadResponse"
+    JsonNode:
+      type: object
+      properties:
+        empty:
+          type: boolean
+        valueNode:
+          type: boolean
+        containerNode:
+          type: boolean
+        missingNode:
+          type: boolean
+        array:
+          type: boolean
+        object:
+          type: boolean
+        nodeType:
+          $ref: "#/components/schemas/JsonNodeType"
+        pojo:
+          type: boolean
+        number:
+          type: boolean
+        integralNumber:
+          type: boolean
+        floatingPointNumber:
+          type: boolean
+        short:
+          type: boolean
+        int:
+          type: boolean
+        long:
+          type: boolean
+        float:
+          type: boolean
+        double:
+          type: boolean
+        bigDecimal:
+          type: boolean
+        bigInteger:
+          type: boolean
+        textual:
+          type: boolean
+        boolean:
+          type: boolean
+        "null":
+          type: boolean
+        binary:
+          type: boolean
+    JsonNodeType:
+      type: string
+      enum:
+      - ARRAY
+      - BINARY
+      - BOOLEAN
+      - MISSING
+      - "NULL"
+      - NUMBER
+      - OBJECT
+      - POJO
+      - STRING
+    LocalDate:
+      type: string
+      format: date
+      examples:
+      - 2022-03-10
+    MetricOperation:
+      type: string
+      enum:
+      - count
+      - count_distinct
+      - sum
+      - avg
+      - min
+      - max
+      - list
+      - list_distinct
+      - percentage
+    ReferenceRequest:
+      type: object
+      required:
+      - ref
+      properties:
+        ref:
+          $ref: "#/components/schemas/DataframeRef"
+    SearchRequest:
+      type: object
+      required:
+      - query
+      properties:
+        query:
+          type: string
+          pattern: \S
+        limit:
+          type: integer
+          format: int32
+          maximum: 50000
+          minimum: 1
+        topRowsLimit:
+          type: integer
+          format: int32
+          maximum: 100
+          minimum: 0
+    SearchSessionEnvelopeResponse:
+      type: object
+      properties:
+        session:
+          $ref: "#/components/schemas/SearchSessionPayloadResponse"
+        decisions_dataframe_ref:
+          $ref: "#/components/schemas/DecisionsDataframeRef"
+        hits_dataframe_ref:
+          $ref: "#/components/schemas/HitsDataframeRef"
+        arguments_dataframe_ref:
+          $ref: "#/components/schemas/ArgumentsDataframeRef"
+    SearchSessionPayloadResponse:
+      type: object
+      properties:
+        session_id:
+          type: string
+        query_text:
+          type: string
+        request_payload:
+          $ref: "#/components/schemas/SearchSessionRequestPayloadEnvelope"
+        result_payload:
+          $ref: "#/components/schemas/SearchSessionResultPayloadEnvelope"
+        created_at:
+          type: string
+    SearchSessionRequestPayloadEnvelope:
+      type: object
+      properties:
+        hybridSearch:
+          $ref: "#/components/schemas/HybridSearchRequestPayload"
+        decisionFilter:
+          $ref: "#/components/schemas/DecisionFilterRequestPayload"
+        filterDataframe:
+          $ref: "#/components/schemas/FilterDataframeRequestPayload"
+        expandArguments:
+          $ref: "#/components/schemas/ExpandArgumentsRequestPayload"
+    SearchSessionResultPayloadEnvelope:
+      type: object
+      properties:
+        hybridSearch:
+          $ref: "#/components/schemas/HybridSearchResultPayload"
+        decisionFilter:
+          $ref: "#/components/schemas/DecisionFilterResultPayload"
+        filterDataframe:
+          $ref: "#/components/schemas/FilterDataframeResultPayload"
+        expandArguments:
+          $ref: "#/components/schemas/ExpandArgumentsResultPayload"
+    SearchWithinDataframeDecisionsRequest:
+      type: object
+      required:
+      - ref
+      - query
+      properties:
+        ref:
+          $ref: "#/components/schemas/DecisionsDataframeRef"
+        query:
+          type: string
+          pattern: \S
+        limit:
+          type: integer
+          format: int32
+          maximum: 200
+          minimum: 1
+        topRowsLimit:
+          type: integer
+          format: int32
+          maximum: 100
+          minimum: 0
+    SortCriterion:
+      type: object
+      properties:
+        column:
+          $ref: "#/components/schemas/ColumnPath"
+        direction:
+          $ref: "#/components/schemas/SortDirection"
+    SortDirection:
+      type: string
+      enum:
+      - asc
+      - desc
+    TopRunLabelResponse:
+      type: object
+      properties:
+        run_label:
+          type: string
+        decisions:
+          type: integer
+          format: int64
+paths:
+  /arguments/aggregate:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ArgumentsAggregateRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataframeAggregateResponse"
+        "400":
+          description: Bad Request
+      summary: Aggregate
+      tags:
+      - Arguments Resource
+  /arguments/expand:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExpandDecisionArgumentsRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataframeSessionResponse"
+        "400":
+          description: Bad Request
+      summary: Expand
+      tags:
+      - Arguments Resource
+  /arguments/filter:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ArgumentsFilterDataframeRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataframeSessionResponse"
+        "400":
+          description: Bad Request
+      summary: Filter
+      tags:
+      - Arguments Resource
+  /arguments/query:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ArgumentsQueryRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataframeQueryResponseArgumentDataframeQueryRowResponse"
+        "400":
+          description: Bad Request
+      summary: Query
+      tags:
+      - Arguments Resource
+  /corpus/metadata:
+    get:
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CorpusMetadataResponse"
+      summary: Metadata
+      tags:
+      - Corpus Resource
+  /dataframe/describe:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReferenceRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataframeDescribeResponse"
+        "400":
+          description: Bad Request
+      summary: Describe
+      tags:
+      - Dataframe Resource
+  /decision/{identifier}:
+    get:
+      parameters:
+      - name: identifier
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: .+
+      - name: include_full_text
+        in: query
+        schema:
+          type: boolean
+          default: false
+      - name: select
+        in: query
+        schema:
+          type: array
+          items:
+            $ref: "#/components/schemas/DecisionDetailSelectParam"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DecisionDetailResponse"
+      summary: Decision Detail
+      tags:
+      - Decision Resource
+  /decision/{identifier}/fulltext-search:
+    post:
+      parameters:
+      - name: identifier
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: .+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DecisionFulltextSearchRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DecisionFulltextSearchResponse"
+        "400":
+          description: Bad Request
+      summary: Fulltext Search
+      tags:
+      - Decision Resource
+  /decision/{identifier}/hits:
+    get:
+      parameters:
+      - name: identifier
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: .+
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          format: int32
+          maximum: 200
+          minimum: 1
+          default: 20
+      - name: offset
+        in: query
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+          default: 0
+      - name: session_id
+        in: query
+        schema:
+          type: string
+          pattern: \S
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DecisionHitsResponse"
+      summary: Decision Hits
+      tags:
+      - Decision Resource
+  /decision/{identifier}/semantic-search:
+    post:
+      parameters:
+      - name: identifier
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: .+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DecisionSemanticSearchRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DecisionSemanticSearchResponse"
+        "400":
+          description: Bad Request
+      summary: Semantic Search
+      tags:
+      - Decision Resource
+  /decisions/aggregate:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DecisionsAggregateRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataframeAggregateResponse"
+        "400":
+          description: Bad Request
+      summary: Aggregate
+      tags:
+      - Decisions Resource
+  /decisions/filter:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DecisionFilterRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataframeSessionResponse"
+        "400":
+          description: Bad Request
+      summary: Filter
+      tags:
+      - Decisions Resource
+  /decisions/query:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DecisionsQueryRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataframeQueryResponseDecisionDataframeQueryRowResponse"
+        "400":
+          description: Bad Request
+      summary: Query
+      tags:
+      - Decisions Resource
+  /decisions/search-within-dataframe:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SearchWithinDataframeDecisionsRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HybridSearchResponse"
+        "400":
+          description: Bad Request
+      summary: Search Within Dataframe
+      tags:
+      - Decisions Resource
+  /health:
+    get:
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+      summary: Health
+      tags:
+      - Health Resource
+  /hits/aggregate:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HitsAggregateRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataframeAggregateResponse"
+        "400":
+          description: Bad Request
+      summary: Aggregate
+      tags:
+      - Hits Resource
+  /hits/expand-to-arguments:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExpandHitArgumentsRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataframeSessionResponse"
+        "400":
+          description: Bad Request
+      summary: Expand To Arguments
+      tags:
+      - Hits Resource
+  /hits/filter:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HitsFilterDataframeRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataframeSessionResponse"
+        "400":
+          description: Bad Request
+      summary: Filter
+      tags:
+      - Hits Resource
+  /hits/query:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HitsQueryRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataframeQueryResponseHitDataframeQueryRowResponse"
+        "400":
+          description: Bad Request
+      summary: Query
+      tags:
+      - Hits Resource
+  /search:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SearchRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HybridSearchResponse"
+        "400":
+          description: Bad Request
+      summary: Search
+      tags:
+      - Search Resource
+  /session/{sessionId}:
+    get:
+      parameters:
+      - name: sessionId
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: \S
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchSessionEnvelopeResponse"
+      summary: Session
+      tags:
+      - Search Resource
+info:
+  title: fragmea-api-quarkus API
+  version: 1.0.0-SNAPSHOT
+servers:
+- url: http://localhost:8091
+  description: Auto generated value
+- url: http://0.0.0.0:8091
+  description: Auto generated value

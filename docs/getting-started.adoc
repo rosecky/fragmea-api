@@ -47,7 +47,11 @@ curl https://api.fragmea.com/corpus/metadata \
 curl https://api.fragmea.com/search \
   -H "Authorization: Bearer $FRAGMEA_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"query":"náhrada škody"}'
+  -d '{
+    "query": "náhrada škody",
+    "limit": 100,
+    "top_rows_limit": 8
+  }'
 ----
 
 The response creates a search workspace with:
@@ -55,7 +59,7 @@ The response creates a search workspace with:
 - session metadata
 - a decisions dataframe reference
 - a hits dataframe reference
-- optionally an arguments dataframe reference in follow-up workflows
+- inline `top_rows` preview data
 
 == Load a Stored Session
 
@@ -77,15 +81,27 @@ curl "https://api.fragmea.com/decision/<decision_id>?include_full_text=false" \
 
 [source,bash]
 ----
-curl https://api.fragmea.com/decision/fulltext-search \
+curl https://api.fragmea.com/decision/<decision_id_or_case_number>/fulltext-search \
   -H "Authorization: Bearer $FRAGMEA_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "identifier": "<decision_id_or_case_number>",
     "query": "přípustnost dovolání",
     "mode": "phrase",
     "limit": 10,
     "context_chars": 120
+  }'
+----
+
+== Decision Semantic Search
+
+[source,bash]
+----
+curl https://api.fragmea.com/decision/<decision_id_or_case_number>/semantic-search \
+  -H "Authorization: Bearer $FRAGMEA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "náhrada škody",
+    "limit": 10
   }'
 ----
 
@@ -98,23 +114,9 @@ curl https://api.fragmea.com/decisions/search-within-dataframe \
   -H "Content-Type: application/json" \
   -d '{
     "ref": "nsoud-search-session:123:decisions",
-    "query": "promlčení nároku"
-  }'
-----
-
-== Generic Dataframe Query Example
-
-[source,bash]
-----
-curl https://api.fragmea.com/dataframe/query \
-  -H "Authorization: Bearer $FRAGMEA_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "ref": "nsoud-search-session:123:hits",
-    "select": ["decision_id", "case_number", "snippet", "score"],
-    "sort": [{"field":"score","direction":"desc"}],
-    "limit": 5,
-    "offset": 0
+    "query": "promlčení nároku",
+    "limit": 50,
+    "top_rows_limit": 6
   }'
 ----
 
@@ -127,9 +129,10 @@ curl https://api.fragmea.com/decisions/aggregate \
   -H "Content-Type: application/json" \
   -d '{
     "ref": "nsoud-search-session:123:decisions",
-    "group_by": [{"field":"review_stage"}],
+    "group_by": [{"field":"decision_date","date_part":"year"}],
     "metrics": [{"op":"count","alias":"decision_count"}],
     "limit": 20
   }'
 ----
 
+For the exact field names, enums, and request body shapes, use `openapi/fragmea-api.openapi.yaml` as the source of truth.

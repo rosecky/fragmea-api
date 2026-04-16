@@ -10,7 +10,7 @@ Public documentation repository for the FRAGMEA Stack HTTP API exposed at `https
 This repository is intentionally small and publication-friendly:
 
 - human-readable API documentation in AsciiDoc
-- a curated OpenAPI 3.1 spec for client generation and integrations
+- a synced OpenAPI 3.1 spec for client generation and integrations
 - quick examples for common legal search and dataframe workflows
 
 == Repository Layout
@@ -18,7 +18,8 @@ This repository is intentionally small and publication-friendly:
 - `docs/getting-started.adoc` - first request, auth, and common curl examples
 - `docs/authentication.adoc` - bearer token usage and auth behavior
 - `docs/endpoints.adoc` - grouped endpoint reference
-- `openapi/fragmea-api.openapi.yaml` - curated OpenAPI specification
+- `openapi/fragmea-api.openapi.yaml` - generated OpenAPI specification synced from the API build
+- Swagger UI: `https://api.fragmea.com/swagger/`
 
 == API Summary
 
@@ -33,11 +34,10 @@ This repository is intentionally small and publication-friendly:
 
 == Notes
 
-- The OpenAPI file in this repository is curated from the live FastAPI routes and request models.
+- The OpenAPI file in this repository is synced from the generated Quarkus OpenAPI schema.
 - Response bodies are intentionally modeled as generic JSON objects in several places because the API returns rich dynamic payloads that depend on query mode and dataframe shape.
 - Public consumers should use user-scoped API keys. Internal deployment tokens are not part of the public contract.
 
 == Publishing
 
 This directory is designed to work as a standalone public repository without any dependency on the private deployment repo.
-

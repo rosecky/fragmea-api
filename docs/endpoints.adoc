@@ -29,7 +29,7 @@
 |Yes
 
 |GET
-|`/session/{session_id}`
+|`/session/{sessionId}`
 |Yes
 |===
 
@@ -48,11 +48,11 @@
 |Yes
 
 |POST
-|`/decision/semantic-search`
+|`/decision/{identifier}/semantic-search`
 |Yes
 
 |POST
-|`/decision/fulltext-search`
+|`/decision/{identifier}/fulltext-search`
 |Yes
 |===
 
@@ -88,18 +88,6 @@
 |POST
 |`/dataframe/describe`
 |Yes
-
-|POST
-|`/dataframe/query`
-|Yes
-
-|POST
-|`/dataframe/filter`
-|Yes
-
-|POST
-|`/dataframe/aggregate`
-|Yes
 |===
 
 == Typed Decision Dataframe Operations
@@ -113,7 +101,7 @@
 |Yes
 
 |POST
-|`/decisions/filter-dataframe`
+|`/decisions/filter`
 |Yes
 
 |POST
@@ -174,16 +162,26 @@ Expected kinds by endpoint family:
 - `decisions/*` typed dataframe endpoints expect a `:decisions` ref
 - `hits/*` typed dataframe endpoints expect a `:hits` ref
 - `arguments/*` typed dataframe endpoints expect an `:arguments` ref
-- generic `/dataframe/*` endpoints accept any dataframe ref
+- generic `/dataframe/describe` accepts any dataframe ref
 
-== Filtering And Aggregation Conventions
+== Search Result Limits
 
-Generic operations use the common shapes:
+Hybrid search endpoints expose two separate knobs:
 
-- filter item: `{ "field": "...", "op": "eq|ne|in|contains|gte|lte|gt|lt", "value": ... }`
-- sort item: `{ "field": "...", "direction": "asc|desc" }`
-- group-by item: `{ "field": "...", "label": "...", "date_part": "year|month|day" }`
-- metric item: `{ "op": "count|sum|avg|min|max|percentage|percent|share|list|list_distinct", "field": "...", "alias": "..." }`
+- `limit` controls how many ranked results are materialized into the search session and dataframe refs
+- `top_rows_limit` controls how many preview rows are returned inline in the immediate response
 
-Typed decision, hit, and argument endpoints restrict field names and enum values more tightly. Use the OpenAPI spec in `openapi/nsoud-search-stack-api.openapi.yaml` for field-level details.
+This separation applies to:
 
+- `POST /search`
+- `POST /decisions/search-within-dataframe`
+
+== Typed Request Contracts
+
+The public contract is intentionally strict:
+
+- decision, hit, and argument dataframe endpoints use endpoint-specific request DTOs
+- field names, enum values, and allowed filters differ by endpoint family
+- decision semantic and fulltext search take `identifier` from the path, not from the JSON body
+
+Use the generated OpenAPI spec in `openapi/fragmea-api.openapi.yaml` as the source of truth for field-level request and response details.
