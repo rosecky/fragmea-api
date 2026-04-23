@@ -168,13 +168,16 @@ Expected kinds by endpoint family:
 
 Hybrid search endpoints expose two separate knobs:
 
-- `limit` controls how many ranked results are materialized into the search session and dataframe refs
-- `top_rows_limit` controls how many preview rows are returned inline in the immediate response
+- `limit` controls the maximum number of final ranked decision results retained in the search session and dataframe refs
+- `topRowsLimit` controls how many preview rows are returned inline in the immediate response
+- `candidate_count` is the count of final ranked results before inline preview truncation by `topRowsLimit`
 
 This separation applies to:
 
 - `POST /search`
 - `POST /decisions/search-within-dataframe`
+
+For scoped search, linked precedent expansion is allowed only when the linked decision is already inside the provided decision scope.
 
 == Typed Request Contracts
 
@@ -183,5 +186,6 @@ The public contract is intentionally strict:
 - decision, hit, and argument dataframe endpoints use endpoint-specific request DTOs
 - field names, enum values, and allowed filters differ by endpoint family
 - decision semantic and fulltext search take `identifier` from the path, not from the JSON body
+- decision detail field projection uses repeated `select` query parameters such as `select=source.full_text`
 
 Use the generated OpenAPI spec in `openapi/fragmea-api.openapi.yaml` as the source of truth for field-level request and response details.

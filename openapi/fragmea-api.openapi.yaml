@@ -14,8 +14,6 @@ components:
           type: string
         case_number:
           type: string
-        decision_title:
-          type: string
         decision_date:
           type: string
         case_domain:
@@ -67,7 +65,6 @@ components:
       - argument_unit_id
       - decision_id
       - case_number
-      - decision_title
       - decision_date
       - case_domain
       - disposition_type
@@ -581,8 +578,6 @@ components:
       properties:
         decision:
           $ref: "#/components/schemas/DecisionDetailPayloadResponse"
-        has_full_text_available:
-          type: boolean
         resolved_by:
           type: string
     DecisionDetailSelectField:
@@ -1228,8 +1223,6 @@ components:
           type: string
         case_number:
           type: string
-        decision_title:
-          type: string
         subject:
           type: string
         decision_date:
@@ -1264,7 +1257,6 @@ components:
       - regulation_key
       - precedent_key
       - case_number
-      - decision_title
       - subject
       - decision_date
       - argument_text
@@ -2020,11 +2012,6 @@ paths:
         schema:
           type: string
           pattern: .+
-      - name: include_full_text
-        in: query
-        schema:
-          type: boolean
-          default: false
       - name: select
         in: query
         schema:

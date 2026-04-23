@@ -50,7 +50,7 @@ curl https://api.fragmea.com/search \
   -d '{
     "query": "náhrada škody",
     "limit": 100,
-    "top_rows_limit": 8
+    "topRowsLimit": 8
   }'
 ----
 
@@ -60,6 +60,8 @@ The response creates a search workspace with:
 - a decisions dataframe reference
 - a hits dataframe reference
 - inline `top_rows` preview data
+
+`candidate_count` means how many final ranked decision rows are available before inline preview truncation by `topRowsLimit`.
 
 == Load a Stored Session
 
@@ -71,10 +73,15 @@ curl "https://api.fragmea.com/session/<sessionId>" \
 
 == Decision Detail
 
+Request only the fields you need through repeated `select` query parameters.
+
 [source,bash]
 ----
-curl "https://api.fragmea.com/decision/<decision_id>?include_full_text=false" \
-  -H "Authorization: Bearer $FRAGMEA_API_KEY"
+curl -G "https://api.fragmea.com/decision/<decision_id>" \
+  -H "Authorization: Bearer $FRAGMEA_API_KEY" \
+  --data-urlencode 'select=decision_id' \
+  --data-urlencode 'select=source.full_text' \
+  --data-urlencode 'select=source.pdf_url'
 ----
 
 == Decision Fulltext Search
@@ -88,7 +95,7 @@ curl https://api.fragmea.com/decision/<identifier>/fulltext-search \
     "query": "přípustnost dovolání",
     "mode": "phrase",
     "limit": 10,
-    "context_chars": 120
+    "contextChars": 120
   }'
 ----
 
@@ -116,7 +123,7 @@ curl https://api.fragmea.com/decisions/search-within-dataframe \
     "ref": "nsoud-search-session:123:decisions",
     "query": "promlčení nároku",
     "limit": 50,
-    "top_rows_limit": 6
+    "topRowsLimit": 6
   }'
 ----
 
@@ -129,10 +136,10 @@ curl https://api.fragmea.com/decisions/aggregate \
   -H "Content-Type: application/json" \
   -d '{
     "ref": "nsoud-search-session:123:decisions",
-    "group_by": [{"field":"decision_date","date_part":"year"}],
-    "metrics": [{"op":"count","alias":"decision_count"}],
+    "groupBy": [{"column":"decision_date","datePart":"year","label":"year"}],
+    "metrics": [{"operation":"count","alias":"decision_count"}],
     "limit": 20
   }'
 ----
 
-For the exact field names, enums, and request body shapes, use `openapi/fragmea-api.openapi.yaml` as the source of truth.
+For exact field names, enums, and request body shapes, use `openapi/fragmea-api.openapi.yaml` as the source of truth.
